@@ -1,7 +1,7 @@
 # StorX
 Simple PHP flat-file data storage library
 
-Current library version: `3.1`  
+Current library version: `3.2`  
 Current DB file version: `3.0`
 
 License: `AGPLv3`
@@ -30,7 +30,7 @@ require 'StorX.php';
 //create a DB file
 \StorX\createFile('testDB.dat');
 
-//create Sx object to work with the DB file
+//create Sx 'handle' object to work with the DB file
 $sx = new \Storx\Sx;
 
 //open the file for writing
@@ -62,16 +62,25 @@ if($sx->checkKey('username')){
 //deleting a key
 $sx->deleteKey('password');
 
-//commit hanges to DB file and close it
+//commit changes to DB file and close it
 $sx->closeFile();
 
 ```
+
+## Stuff you should know
+
+ * For key names, stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
+    > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
+ * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
+ * Exceptions are enabled by default, this behaviour can be changed by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
 
 ## Functions
 
 Conditions where `e` is marked with `*` will throw an exception if exceptions are enabled.
 
 ### _File functions_
+
+This is how you create, check or delete a StorX DB file.
 
 #### 1. `\StorX\createFile(<filename>)`
 
@@ -88,7 +97,7 @@ if(\StorX\createFile('testDB.dat') === 1){
 returned value | e | meaning
 ---------------|---|-------
 `0`            |*  | file doesn't exist and we're unable to create it
-`1`            |   | file *successfully* created
+`1`            |   | file successfully created
 `2`            |   | StorX DB file already exists of same version
 `3`            |   | StorX DB file already exists, but of different version
 `4`            |   | SQLite3 file already exists but not a StorX DB
@@ -96,7 +105,7 @@ returned value | e | meaning
 
 #### 2.  `\StorX\deleteFile(<filename>)`
 
-Delete everything in a StorX DB file, then delete the file itself. Will work on all StorX DB files, regardless of file version. 
+Delete everything in a StorX DB file, then delete the file itself. Will work on all StorX DB files, regardless of DB file version. 
 
 ```php
 if(\StorX\deleteFile('testDB.dat') === 1){
@@ -129,14 +138,24 @@ returned value | e | meaning
 ---------------|---|-------
 `0`            |   | file doesn't exist 
 `1`            |   | StorX file of the correct version (3.0) exists
-`3`            |   | StorX DB file exists, but of different version
+`3`            |   | StorX DB file exists, but of a different version
 `4`            |   | SQLite3 file exists but not a StorX DB
 `5`            |   | file exists but it's not an SQLite3 file
 
 
 ----
 
-### _Handler object functions_
+### _Handle object functions_
+
+To actually work with a StorX DB file, we use a file handle object (sorta similar to how [fopen()](https://www.php.net/manual/en/function.fopen.php) works).
+
+We create one like this:
+
+```php
+$sx = new \StorX\Sx;
+```
+
+We then interface with this object using the following functions:
 
 ####  1. `\StorX\Sx::openFile(filename, mode)`
 
@@ -160,22 +179,192 @@ returned value | e | meaning
 ---------------|---|-------
 `0`            |*  | file doesn't exist 
 `0`            |*  | unable to open file 
-`0`            |   | file doesn't exist 
-`0`            |   | file doesn't exist 
-`0`            |   | file doesn't exist 
+`1`            |   | successfully opened file
+
+####  2. `\StorX\Sx:closeFile(filename, mode)`
+
+Closes a StorX DB file. If file was opened for writing then changes are saved before it's closed.
+
+```php
+if($sx->closeFile('testDB.dat', 1)){
+  echo 'closed testDB.dat successfully';
+} else {
+  echo 'error closing testDB.dat';
+}
+```
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | unable to save changes and close file
+`1`            |   | changes have been saved and the file has been closed
+`1`            |   | no file open
+
+
+####  3. `\StorX\Sx:commitFile(filename, mode)`
+
+Saves changes made to an open StorX DB file, but keeps it open.
+
+```php
+if($sx->commitFile('testDB.dat', 1)){
+  echo 'saved changes made to testDB.dat successfully';
+} else {
+  echo 'error saving changes to testDB.dat';
+}
+```
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | unable to save changes to file
+`0`            |*  | no file open
+`1`            |   | changes have been saved 
+
+
+####  4. `\StorX\Sx:readKey(keyName, store)`
+
+Reads a key and saves the value in `store`.
+
+```php
+
+$name = '';  //this statement is for readability, not strictly required
+$sx->readKey('username', $name);
+//value of 'username' key is now in $name
+
+echo $name; //echo value of 'username' key
+```
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |*  | key not found in DB file
+`1`            |   | key read successfully, and value stored in `store`.
+
+
+
+####  5. `\StorX\Sx:returnKey(keyName, store)`
+
+Reads a key and returns the value.
+
+```php
+
+echo $sx->returnKey('username'); //echo value of 'username' key
+```
+
+returned value | e | meaning
+---------------|---|-------
+`STORX_ERROR`  |*  | no file open
+`STORX_ERROR`  |*  | key not found in DB file
+
+
+####  6. `\StorX\Sx:writeKey(keyName, keyValue)`
+
+Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class.
+
+```php
+
+$sx->writeKey('username', 'aavi001'); 
+
+$array = array("foo", "bar", "hello", "world"); //array
+$sx->writeKey('words', $array);
+
+$rt = new RT(); //object of a class
+$sx->writeKey('RTobj', $rt);
+```
+
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |*  | file not locked (not opened for writing)
+`0`            |*  | another key with the same keyName already exists
+`0`            |*  | unable to write key
+`1`            |   | key written successfully
+
+
+
+####  7. `\StorX\Sx:modifyKey(keyName, keyValue)`
+
+Modifies a key's value in the open DB file. If the key does not exist in the file then it is created. 
+
+Like with `writeKey()`, the value can be text, a variable, an array, NULL, or an object of any class.
+
+```php
+
+$sx->modifyKey('username', 'amit009'); 
+
+$array = array("pen", "pineapple", "apple"); //array
+$sx->writeKey('words', $array);
+
+```
+
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |*  | file not locked (not opened for writing)
+`0`            |*  | unable to modify key
+`0`            |*  | unable to write key
+`1`            |   | key value modified successfully
+
+
+
+####  8. `\StorX\Sx:checkKey(keyName)`
+
+Checks if a key exists in the open DB file.
+
+```php
+
+if($sx->checkKey('username')){
+  echo 'username key exists in file!';
+} else {
+  echo 'username key doesn't exist in file!';
+}
+
+```
+
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |   | key doesn't exist in DB file
+`1`            |   | key exists in DB file
+
+
+
+
+####  9. `\StorX\Sx:deleteKey(keyName)`
+
+Deletes a key from the open DB file. 
+
+
+```php
+
+if($sx->deleteKey('username')){
+  echo 'username key deleted from file!';
+} else {
+  echo 'username key can't be deleted from file!';
+}
+
+```
+
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |*  | file not locked (not opened for writing)
+`0`            |*  | unable to delete key
+`1`            |   | key deleted successfully
+
+
 
 
 ## Requirements
-1. [Supported versions of PHP](https://www.php.net/supported-versions.php). At the time of writing, that's PHP `7.3+`. StorX will almost certainly work on older versions, but we don't test it on those, so be careful.
+1. [Supported versions of PHP](https://www.php.net/supported-versions.php). At the time of writing, that's PHP `7.3+`. StorX will almost certainly work on older versions, but we don't test it on those, so be careful, do your own testing.
 2. PHP's `sqlite3` extension. Almost always enabled by default.
 
 
 ## Installation
 1. Save `StorX.php` on your server. You can rename it.
 2. Include the file: `require StorX.php;`.
-
-
-
 
 
 ## Keys and DB files
@@ -189,7 +378,7 @@ As of StorX DB file version 3.0, the DB file contains a single table:
 +------------------------+
 | keyName     | keyValue |
 +-------------|----------+
-| StorXInfo   | v3.0     |
+| StorXInfo   | 3.0      |
 |             |          |
 | key1        | val1     |
 | key2        | val2     |
