@@ -73,6 +73,7 @@ $sx->closeFile();
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
  * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
  * Exceptions are enabled by default, this behaviour can be changed by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
+ * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).
 
 ## Functions
 
