@@ -3,7 +3,7 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 3.1 
+StorX.php version: 3.2 
 StorX DB file format version: 3.0
 
 2021-07-13
@@ -14,9 +14,8 @@ StorX DB file format version: 3.0
 
 namespace StorX;
 use Exception;
-const EOL = "\r\n";
 
-const THROW_EXCEPTIONS = 1; //0: Return error codes, 1: Throw Exceptions
+const THROW_EXCEPTIONS = 1; //0: return error codes, 1: throw exceptions
 
 
 function createFile($filename){
@@ -26,7 +25,7 @@ function createFile($filename){
 	//2 if StorX DB file already exists of same version
 	//3 if StorX DB file already exists, but of different version
 	//4 if an SQLite3 file already exists but not a StorX DB
-	//5 if a file already exists it's not an SQLite3 file
+	//5 if a file already exists but it's not an SQLite3 file
 	
 	if(!file_exists($filename)){
 		
@@ -40,7 +39,7 @@ function createFile($filename){
 		catch (Exception $e) { 
 			//unable to create+open+lock DB
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . EOL);
+				throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);
 			} else {
 				return 0; 
 			}
@@ -55,7 +54,7 @@ function createFile($filename){
 		
 		//creating info row in table 'main'
 		$tempDB->exec("	INSERT INTO main
-						VALUES ('StorXInfo', 'v3.0')");
+						VALUES ('StorXInfo', '3.0')");
 				
 		//close DB
 		try {
@@ -66,7 +65,7 @@ function createFile($filename){
 			$tempDB->close();
 			unlink($filename);
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . EOL);
+				throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);
 			} else {
 				return 0; 
 			}
@@ -76,7 +75,7 @@ function createFile($filename){
 		
 	} else {
 		//DB file already exists
-		//now we'll check it to see if it is of the same StorX version
+		//now we'll check it to see if it is of the same StorX version
 		
 		try {
 			//open DB
@@ -104,7 +103,7 @@ function createFile($filename){
 			//File is not a valid StorX DB!
 			$tempDB->close();
 			return 4;
-		} else if($results->fetchArray()["keyValue"] === "v3.0"){
+		} else if($results->fetchArray()["keyValue"] === "3.0"){
 			//File is a valid StorX DB!
 			$tempDB->close();
 			return 2;
@@ -123,9 +122,9 @@ function checkFile($filename){
 	//0 if file doesn't exist
 	//1 if StorX DB file of correct version exists
 	//2 NULL
-	//3 if StorX DB file already exists, but of different version
-	//4 if an SQLite3 file already exists but not a StorX DB
-	//5 if a file already exists but it's not an SQLite3 file
+	//3 if StorX DB file exists, but of different version
+	//4 if an SQLite3 file exists but not a StorX DB
+	//5 if a file exists but it's not an SQLite3 file
 	
 	if(!file_exists($filename)){
 		
@@ -139,20 +138,20 @@ function checkFile($filename){
 			//open DB
 			$tempDB = new \SQLite3($filename, SQLITE3_OPEN_READONLY);
 			$tempDB->enableExceptions(true);
+			$results = $tempDB->query("SELECT keyValue FROM main WHERE keyName='StorXInfo'");
 		} catch (Exception $e) {
 			//unable to open DB file
 			return 5;
 		}
 		
-		//file open successfully
-		$results = $tempDB->query("SELECT keyValue FROM main WHERE keyName='StorXInfo'");
+		//file opened successfully
 		$StorXInfo = $results->fetchArray()["keyValue"];
-
+		
 		if($StorXInfo === NULL){
 			//File is not a valid StorX DB!
 			$tempDB->close();
 			return 4;
-		} else if($StorXInfo === "v3.0"){
+		} else if($StorXInfo === "3.0"){
 			//File is a valid StorX DB of the same version
 			$tempDB->close();
 			return 1;
@@ -175,7 +174,7 @@ function deleteFile($filename){
 	if(checkFile($filename) !== 1 && checkFile($filename) !== 3){
 		//not a StorX DB file
 		if(THROW_EXCEPTIONS){
-			throw new Exception("[StorX: deleteFile()] $filename is not a StorX DB file." . EOL);
+			throw new Exception("[StorX: deleteFile()] $filename is not a StorX DB file." . PHP_EOL);
 		} else {
 			return 0;
 		}
@@ -199,7 +198,7 @@ function deleteFile($filename){
 		
 		//unable to delete file
 		if(THROW_EXCEPTIONS){
-			throw new Exception("[StorX: deleteFile()] [SQLite]: " . $e->getMessage() . EOL);				
+			throw new Exception("[StorX: deleteFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
 		} else {
 			return 0; 
 		}
@@ -214,7 +213,7 @@ function deleteFile($filename){
 	catch (Exception $e) {
 		//unable to drop 'main' table
 		if(THROW_EXCEPTIONS){
-			throw new Exception("[StorX: deleteFile()] [SQLite]: " . $e->getMessage() . EOL);				
+			throw new Exception("[StorX: deleteFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
 		} else {
 			return 0; 
 		}
@@ -228,7 +227,7 @@ function deleteFile($filename){
 	} else {
 		$tempDB->close();
 		if(THROW_EXCEPTIONS){
-			throw new Exception("[StorX: deleteFile()] Unable to delete $filename." . EOL);				
+			throw new Exception("[StorX: deleteFile()] Unable to delete $filename." . PHP_EOL);				
 		} else {
 			return 0; 
 		}
@@ -252,12 +251,20 @@ class Sx{
 		if(!file_exists($filename)){
 			//DBfile does not exist
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: openFile()] DBfile does not exist.");
+				throw new Exception("[StorX: openFile()] File does not exist.");
 			} else {
 				return 0;  
 			}
 		}
 		
+		if(checkFile($filename) !== 1){
+			//file is not of StorX type
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: openFile()] File not of StorX type.");
+			} else {
+				return 0;  
+			}
+		}
 		
 		//mode values: 0 = readonly, 1 = readwrite
 		if($mode == 1){			
@@ -274,7 +281,7 @@ class Sx{
 				//because we're using transactions, this is super unlikely, but still...
 				
 				if(THROW_EXCEPTIONS){
-					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . EOL);				
+					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
 				} else {
 					return 0; 
 				}
@@ -291,7 +298,7 @@ class Sx{
 				//This is super unlikely, but still...
 				
 				if(THROW_EXCEPTIONS){
-					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . EOL);				
+					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
 				} else {
 					return 0; 
 				}
@@ -299,6 +306,7 @@ class Sx{
 			
 			//if control reaches here, then the file opened successfully for readwrite, and transaction begun
 			//function complete
+			return 1;
 		} else {
 				//open DB for readonly
 			try {
@@ -313,7 +321,7 @@ class Sx{
 				//unable to open DB for readonly
 				//because we're using transactions, this is super unlikely, but still...
 				if(THROW_EXCEPTIONS){				
-					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . EOL);
+					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);
 				} else {
 					return 0; 
 				}
@@ -321,6 +329,7 @@ class Sx{
 			
 			//If control reached here, then the DB was successfully opened for readonly
 			//Because we're opening for readonly, we don't need to worry about locking the file
+			return 1;
 		}
 	}
 
@@ -335,7 +344,7 @@ class Sx{
 					//unable to commit transaction to DB
 					//This is super unlikely, but still...
 					if(THROW_EXCEPTIONS){
-						throw new Exception("[StorX: closeFile()] [SQLite]: " . $e->getMessage() . EOL);				
+						throw new Exception("[StorX: closeFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
 					} else {
 						return 0; 
 					}
@@ -348,6 +357,7 @@ class Sx{
 		unset($this->fileStatus);
 		unset($this->lockStatus);
 		unset($this->DBfile);
+		return 1;
 	}
 	
 	public function commitFile(){
@@ -365,14 +375,21 @@ class Sx{
 					//This is super unlikely, but still...
 					
 					if(THROW_EXCEPTIONS){
-						throw new Exception("[StorX: commitFile()] [SQLite]: " . $e->getMessage() . EOL);						
+						throw new Exception("[StorX: commitFile()] [SQLite]: " . $e->getMessage() . PHP_EOL);						
 					} else {
 						return 0; 
 					}
 				}
 			}
+			return 1;
 			
-		}
+		} else {
+			//no file open
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: commitFile()]: No file open." . PHP_EOL);						
+			} else {
+				return 0; 
+			}
 	}
 	
 	
@@ -381,7 +398,7 @@ class Sx{
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: readKey()] No file open." . EOL);				
+				throw new Exception("[StorX: readKey()] No file open." . PHP_EOL);				
 			} else {
 				return 0;
 			}
@@ -390,7 +407,7 @@ class Sx{
 		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyName'");
 		if($result->fetchArray(SQLITE3_NUM)[0] === 0){
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: readKey()] Key doesn't exist in DB file." . EOL);				
+				throw new Exception("[StorX: readKey()] Key doesn't exist in DB file." . PHP_EOL);				
 			} else {
 				return 0;	//key not found!
 			}
@@ -405,7 +422,7 @@ class Sx{
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: returnKey()] No file open." . EOL);				
+				throw new Exception("[StorX: returnKey()] No file open." . PHP_EOL);				
 			} else {
 				return "STORX_ERROR";
 			}
@@ -414,7 +431,7 @@ class Sx{
 		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyName'");
 		if($result->fetchArray(SQLITE3_NUM)[0] === 0){
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: returnKey()] Key doesn't exist in DB file." . EOL);				
+				throw new Exception("[StorX: returnKey()] Key doesn't exist in DB file." . PHP_EOL);				
 			} else {
 				return "STORX_ERROR";	//key not found!
 			}
@@ -428,7 +445,7 @@ class Sx{
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: writeKey()] No file open." . EOL);				
+				throw new Exception("[StorX: writeKey()] No file open." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -436,7 +453,7 @@ class Sx{
 		if(!$this->lockStatus){
 			//file not locked
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: writeKey()] File [$this->DBfile] not locked." . EOL);				
+				throw new Exception("[StorX: writeKey()] File [$this->DBfile] not locked for writing." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -446,7 +463,7 @@ class Sx{
 		if($result->fetchArray(SQLITE3_NUM)[0] !== 0){
 			//key already exists!
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: writeKey()] Key [$keyName] already exists." . EOL);				
+				throw new Exception("[StorX: writeKey()] Key [$keyName] already exists." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -459,7 +476,7 @@ class Sx{
 		} else {
 			//key write fail
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: writeKey()] Unable to write key [$keyName]." . EOL);				
+				throw new Exception("[StorX: writeKey()] Unable to write key [$keyName]." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -470,7 +487,7 @@ class Sx{
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: modifyKey()] No file open." . EOL);				
+				throw new Exception("[StorX: modifyKey()] No file open." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -479,7 +496,7 @@ class Sx{
 		if(!$this->lockStatus){
 			//file not locked
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: modifyKey()] File [$this->DBfile] not locked." . EOL);				
+				throw new Exception("[StorX: modifyKey()] File [$this->DBfile] not locked for writing." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -496,7 +513,7 @@ class Sx{
 			} else {
 				//key update fail :(
 				if(THROW_EXCEPTIONS){
-					throw new Exception("[StorX: modifyKey()] Unable to update key [$keyName]." . EOL);				
+					throw new Exception("[StorX: modifyKey()] Unable to update key [$keyName]." . PHP_EOL);				
 				} else {
 					return 0; 
 				}
@@ -511,7 +528,7 @@ class Sx{
 		} else {
 			//key write fail
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: modifyKey()] Unable to write key [$keyName]." . EOL);				
+				throw new Exception("[StorX: modifyKey()] Unable to write key [$keyName]." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -522,7 +539,7 @@ class Sx{
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: checkKey()] No file open." . EOL);				
+				throw new Exception("[StorX: checkKey()] No file open." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -538,7 +555,7 @@ class Sx{
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: deleteKey()] No file open." . EOL);				
+				throw new Exception("[StorX: deleteKey()] No file open." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
@@ -547,22 +564,24 @@ class Sx{
 		if(!$this->lockStatus){
 			//file not locked
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: deleteKey()] File [$this->DBfile] not locked." . EOL);				
+				throw new Exception("[StorX: deleteKey()] File [$this->DBfile] not locked for writing." . PHP_EOL);				
 			} else {
 				return 0; 
 			}
 		}
+		
 		try {
 			$this->fileHandle->exec("DELETE FROM main WHERE keyName='$keyName'");
 		}
 		catch (Exception $e) { 
 			//unable to delete key
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: deleteKey()] [SQLite]: " . $e->getMessage() . EOL);
+				throw new Exception("[StorX: deleteKey()] [SQLite]: " . $e->getMessage() . PHP_EOL);
 			} else {
 				return 0; 
 			}
-		} 
+		}
+		return 1; //key deleted!
 	}
 	
 }
