@@ -391,6 +391,5 @@ As of StorX DB file version 3.0, the DB file contains a single table:
 
 Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` in the PHP serialized format.
 
-------
-
-Documentation incomplete, will be updated soon. 
+-----
+Documentation updated `2020-07-28`
