@@ -12,11 +12,11 @@ StorX is a tiny PHP library that allows you to store data (objects) in flat file
 
 It was initially developed primarily to facilitate sharing of data between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of SQL/SQLite.
 
-It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually make DBs or formulate complicated queries just to be able to store and retireve information. This also means that it's really easy to export the data to other DBs.
+It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually make DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's really easy to export the data to other DBs.
 
 ## Example usage
 
-The easiest way to undestand what this does is to see an example of it in action:
+The easiest way to understand what this does is to see an example of it in action:
 
 ```php
 
