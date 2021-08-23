@@ -182,7 +182,7 @@ returned value | e | meaning
 `0`            |*  | unable to open file 
 `1`            |   | successfully opened file
 
-####  2. `\StorX\Sx:closeFile(filename, mode)`
+####  2. `\StorX\Sx::closeFile(filename, mode)`
 
 Closes a StorX DB file. If file was opened for writing then changes are saved before it's closed.
 
@@ -201,7 +201,7 @@ returned value | e | meaning
 `1`            |   | no file open
 
 
-####  3. `\StorX\Sx:commitFile(filename, mode)`
+####  3. `\StorX\Sx::commitFile(filename, mode)`
 
 Saves changes made to an open StorX DB file, but keeps it open.
 
@@ -220,7 +220,7 @@ returned value | e | meaning
 `1`            |   | changes have been saved 
 
 
-####  4. `\StorX\Sx:readKey(keyName, store)`
+####  4. `\StorX\Sx::readKey(keyName, store)`
 
 Reads a key and saves the value in `store`.
 
@@ -241,7 +241,7 @@ returned value | e | meaning
 
 
 
-####  5. `\StorX\Sx:returnKey(keyName, store)`
+####  5. `\StorX\Sx::returnKey(keyName, store)`
 
 Reads a key and returns the value.
 
@@ -256,7 +256,7 @@ returned value | e | meaning
 `STORX_ERROR`  |*  | key not found in DB file
 
 
-####  6. `\StorX\Sx:writeKey(keyName, keyValue)`
+####  6. `\StorX\Sx::writeKey(keyName, keyValue)`
 
 Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class.
 
@@ -282,7 +282,7 @@ returned value | e | meaning
 
 
 
-####  7. `\StorX\Sx:modifyKey(keyName, keyValue)`
+####  7. `\StorX\Sx::modifyKey(keyName, keyValue)`
 
 Modifies a key's value in the open DB file. If the key does not exist in the file then it is created. 
 
@@ -308,7 +308,7 @@ returned value | e | meaning
 
 
 
-####  8. `\StorX\Sx:checkKey(keyName)`
+####  8. `\StorX\Sx::checkKey(keyName)`
 
 Checks if a key exists in the open DB file.
 
@@ -332,7 +332,7 @@ returned value | e | meaning
 
 
 
-####  9. `\StorX\Sx:deleteKey(keyName)`
+####  9. `\StorX\Sx::deleteKey(keyName)`
 
 Deletes a key from the open DB file. 
 
@@ -392,4 +392,4 @@ As of StorX DB file version 3.0, the DB file contains a single table:
 Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` in the PHP serialized format.
 
 -----
-Documentation updated `2020-07-28`
+Documentation updated `2020-08-24`
