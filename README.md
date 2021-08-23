@@ -31,7 +31,7 @@ require 'StorX.php';
 \StorX\createFile('testDB.dat');
 
 //create Sx 'handle' object to work with the DB file
-$sx = new \Storx\Sx;
+$sx = new \StorX\Sx;
 
 //open the file for writing
 $sx->openFile('testDB.dat', 1);
