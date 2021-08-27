@@ -553,6 +553,13 @@ class Sx{
 	}
 	
 	public function deleteKey($keyName){
+		if($keyName === "StorXInfo"){
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+			} else {
+				return 0; 
+			}
+		}
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
