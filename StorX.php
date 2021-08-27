@@ -472,7 +472,16 @@ class Sx{
 		
 		//base64 because serialize()'s output contains chars that break SQLite commands
 		$keyValue = base64_encode(serialize($keyValue));
-		$this->fileHandle->exec("INSERT INTO main VALUES ('$keyName', '$keyValue')");
+		try {
+			$this->fileHandle->exec("INSERT INTO main VALUES ('$keyName', '$keyValue')");
+		} 
+		catch (Exception $e) {
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
+			} else {
+				return 0; 
+			}
+		}
 		if($this->fileHandle->lastErrorCode() === 0){
 			return 1; //successfully written key!
 		} else {
@@ -509,7 +518,16 @@ class Sx{
 			//key already exists
 			
 			$keyValue = base64_encode(serialize($keyValue));			
-			$this->fileHandle->exec("UPDATE main SET keyValue='$keyValue' WHERE keyName='$keyName'");
+			try {
+				$this->fileHandle->exec("UPDATE main SET keyValue='$keyValue' WHERE keyName='$keyName'");
+			}
+			catch (Exception $e) {
+				if(THROW_EXCEPTIONS){
+					throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
+				} else {
+					return 0; 
+				}
+			}
 			if($this->fileHandle->lastErrorCode() === 0){
 				return 1; //successfully updated key!
 			} else {
@@ -524,7 +542,16 @@ class Sx{
 		
 		//key doesn't exist
 		$keyValue = base64_encode(serialize($keyValue));
-		$this->fileHandle->exec("INSERT INTO main VALUES ('$keyName', '$keyValue')");
+		try {
+			$this->fileHandle->exec("INSERT INTO main VALUES ('$keyName', '$keyValue')");
+		}
+		catch (Exception $e) {
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL);				
+			} else {
+				return 0; 
+			}
+		}
 		if($this->fileHandle->lastErrorCode() === 0){
 			return 1; //successfully written key!
 		} else {
