@@ -16,9 +16,11 @@ It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on 
 
 It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's really easy to export the data to other DBs.
 
-## Example usage
+## Usage
 
-The easiest way to understand what this does is to see an example of it in action:
+ > **See a real-world usage example in the form of a website hit counter [here](https://github.com/aaviator42/hit-counter/)!**
+
+The easiest way to understand what this library does is to see it in action:
 
 ```php
 
