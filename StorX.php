@@ -3,8 +3,8 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 3.3 
-StorX DB file format version: 3.0
+StorX.php version: 3.3
+StorX DB file format version: v3.0
 
 2021-08-27
 
@@ -54,7 +54,7 @@ function createFile($filename){
 		
 		//creating info row in table 'main'
 		$tempDB->exec("	INSERT INTO main
-						VALUES ('StorXInfo', '3.0')");
+						VALUES ('StorXInfo', 'v3.0')");
 				
 		//close DB
 		try {
@@ -103,7 +103,7 @@ function createFile($filename){
 			//File is not a valid StorX DB!
 			$tempDB->close();
 			return 4;
-		} else if($results->fetchArray()["keyValue"] === "3.0"){
+		} else if($results->fetchArray()["keyValue"] === "v3.0"){
 			//File is a valid StorX DB!
 			$tempDB->close();
 			return 2;
@@ -146,12 +146,12 @@ function checkFile($filename){
 		
 		//file opened successfully
 		$StorXInfo = $results->fetchArray()["keyValue"];
-		
+		var_dump($StorXInfo);
 		if($StorXInfo === NULL){
 			//File is not a valid StorX DB!
 			$tempDB->close();
 			return 4;
-		} else if($StorXInfo === "3.0"){
+		} else if($StorXInfo === "v3.0"){
 			//File is a valid StorX DB of the same version
 			$tempDB->close();
 			return 1;
