@@ -1,7 +1,7 @@
 # StorX
 Simple PHP flat-file data storage library
 
-Current library version: `3.2`  
+Current library version: `3.3`  
 Current DB file version: `3.0`
 
 License: `AGPLv3`
@@ -379,7 +379,7 @@ As of StorX DB file version 3.0, the DB file contains a single table:
 +------------------------+
 | keyName     | keyValue |
 +-------------|----------+
-| StorXInfo   | 3.0      |
+| StorXInfo   | v3.0     |
 |             |          |
 | key1        | val1     |
 | key2        | val2     |
@@ -389,7 +389,7 @@ As of StorX DB file version 3.0, the DB file contains a single table:
 +-------------|----------+
 ```
 
-Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` in the PHP serialized format.
+Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format.
 
 -----
 Documentation updated `2020-08-24`
