@@ -146,7 +146,7 @@ function checkFile($filename){
 		
 		//file opened successfully
 		$StorXInfo = $results->fetchArray()["keyValue"];
-		var_dump($StorXInfo);
+		
 		if($StorXInfo === NULL){
 			//File is not a valid StorX DB!
 			$tempDB->close();
