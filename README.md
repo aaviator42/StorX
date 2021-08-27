@@ -8,11 +8,13 @@ License: `AGPLv3`
 
 ## About 
 
-StorX is a tiny PHP library that allows you to store data (objects) in flat files as "keys", which you can read and modify later.  
+StorX is an easy and robust way to write objects to and read them from flat files. 
 
-It was initially developed primarily to facilitate sharing of data between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of SQL/SQLite.
+It was initially developed primarily to facilitate sharing of data between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
 
-It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually make DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's really easy to export the data to other DBs.
+It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects are stored as "keys" in "DB files". These files can be read from and written to concurrently without any risk of data corruption, which is impossible with regular PHP file handling.
+
+It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's really easy to export the data to other DBs.
 
 ## Example usage
 
@@ -75,6 +77,7 @@ $sx->closeFile();
  * Exceptions are enabled by default, this behaviour can be changed by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
  * `StorXInfo` is the only reserved key name. Don't use it!
+
 ## Functions
 
 Conditions where `e` is marked with `*` will throw an exception if exceptions are enabled.
@@ -389,7 +392,7 @@ As of StorX DB file version 3.0, the DB file contains a single table, `main`:
 +-------------|----------+
 ```
 
-Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format.
+Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
 -----
-Documentation updated `2020-08-24`
+Documentation updated `2020-08-27`
