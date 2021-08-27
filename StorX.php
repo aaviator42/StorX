@@ -415,7 +415,7 @@ class Sx{
 		}
 		
 		$result = $this->fileHandle->query("SELECT keyValue FROM main WHERE keyName='$keyName'");
-		$store = unserialize($result->fetchArray(SQLITE3_NUM)[0]);	//storing value in $store
+		$store = unserialize(base64_decode($result->fetchArray(SQLITE3_NUM)[0]));	//storing value in $store
 		return 1;
 	}
 
@@ -439,7 +439,7 @@ class Sx{
 		}
 		
 		$result = $this->fileHandle->query("SELECT keyValue FROM main WHERE keyName='$keyName'");
-		return unserialize($result->fetchArray(SQLITE3_NUM)[0]);	//returning value
+		return unserialize(base64_decode($result->fetchArray(SQLITE3_NUM)[0]));	//returning value
 	}
 	
 	public function writeKey($keyName, $keyValue){
@@ -470,7 +470,8 @@ class Sx{
 			}
 		}
 		
-		$keyValue = serialize($keyValue);
+		//base64 because serialize()'s output contains chars that break SQLite commands
+		$keyValue = base64_encode(serialize($keyValue));
 		$this->fileHandle->exec("INSERT INTO main VALUES ('$keyName', '$keyValue')");
 		if($this->fileHandle->lastErrorCode() === 0){
 			return 1; //successfully written key!
@@ -507,7 +508,7 @@ class Sx{
 		if($result->fetchArray(SQLITE3_NUM)[0] !== 0){
 			//key already exists
 			
-			$keyValue = serialize($keyValue);			
+			$keyValue = base64_encode(serialize($keyValue));			
 			$this->fileHandle->exec("UPDATE main SET keyValue='$keyValue' WHERE keyName='$keyName'");
 			if($this->fileHandle->lastErrorCode() === 0){
 				return 1; //successfully updated key!
@@ -522,7 +523,7 @@ class Sx{
 		}
 		
 		//key doesn't exist
-		$keyValue = serialize($keyValue);
+		$keyValue = base64_encode(serialize($keyValue));
 		$this->fileHandle->exec("INSERT INTO main VALUES ('$keyName', '$keyValue')");
 		if($this->fileHandle->lastErrorCode() === 0){
 			return 1; //successfully written key!
