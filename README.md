@@ -373,7 +373,7 @@ Keys are [serialized](https://www.php.net/manual/en/function.serialize.php) and 
 
 Because these are just regular files, you can access them using any software or library that supports SQLite3 DB files.
 
-As of StorX DB file version 3.0, the DB file contains a single table:
+As of StorX DB file version 3.0, the DB file contains a single table, `main`:
 
 ```
 +------------------------+
