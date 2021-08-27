@@ -3,10 +3,10 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 3.2 
+StorX.php version: 3.3 
 StorX DB file format version: 3.0
 
-2021-07-28
+2021-08-27
 
 
 */
@@ -390,6 +390,7 @@ class Sx{
 			} else {
 				return 0; 
 			}
+		}
 	}
 	
 	
