@@ -8,7 +8,7 @@ License: `AGPLv3`
 
 ## About 
 
-StorX is an easy and robust way to write objects to and read them from flat files. 
+StorX is an easy and robust way to write data (objects) in flat files as "keys", which you can read and modify later.  
 
 It was initially developed primarily to facilitate sharing of data between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
 
