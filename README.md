@@ -248,7 +248,8 @@ returned value | e | meaning
 
 ####  5. `\StorX\Sx::returnKey(keyName, store)`
 
-Reads a key and returns the value.
+Reads a key and returns the value.  
+Use of this function is discouraged, use `readKey()` instead whenever possible!
 
 ```php
 
@@ -397,4 +398,4 @@ As of StorX DB file version 3.0, the DB file contains a single table, `main`:
 Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
 -----
-Documentation updated `2020-08-27`
+Documentation updated `2020-10-01`
