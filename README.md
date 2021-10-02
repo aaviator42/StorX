@@ -258,8 +258,8 @@ echo $sx->returnKey('username'); //echo value of 'username' key
 
 returned value | e | meaning
 ---------------|---|-------
-`STORX_ERROR`  |*  | no file open
-`STORX_ERROR`  |*  | key not found in DB file
+"`STORX_ERROR`"  |*  | no file open
+"`STORX_ERROR`"  |*  | key not found in DB file
 
 
 ####  6. `\StorX\Sx::writeKey(keyName, keyValue)`
