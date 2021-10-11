@@ -3,7 +3,7 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 3.4
+StorX.php version: 3.5
 StorX DB file format version: v3.0
 
 2021-10-10
@@ -396,6 +396,11 @@ class Sx{
 	
 	//KEY OPERATIONS
 	public function readKey($keyName, &$store){
+		if($keyName === "StorXInfo"){
+			$store = "3.3";
+			return 1;
+		}
+		
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
@@ -420,6 +425,9 @@ class Sx{
 	}
 
 	public function returnKey($keyName){
+		if($keyName === "StorXInfo"){
+			return "3.3";
+		}
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
@@ -443,6 +451,14 @@ class Sx{
 	}
 	
 	public function writeKey($keyName, $keyValue){
+		if($keyName === "StorXInfo"){
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+			} else {
+				return 0; 
+			}
+		}
+		
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
@@ -495,6 +511,14 @@ class Sx{
 	}
 	
 	public function modifyKey($keyName, $keyValue){
+		if($keyName === "StorXInfo"){
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+			} else {
+				return 0; 
+			}
+		}
+		
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
@@ -565,6 +589,14 @@ class Sx{
 	}
 	
 	public function checkKey($keyName){
+		if($keyName === "StorXInfo"){
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+			} else {
+				return 0; 
+			}
+		}
+		
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
@@ -588,6 +620,7 @@ class Sx{
 				return 0; 
 			}
 		}
+		
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
