@@ -1,5 +1,5 @@
 # StorX
-Simple PHP flat-file data storage library
+Simple PHP key-value flat-file data storage library
 
 Current library version: `3.3`  
 Current DB file version: `3.0`
@@ -18,7 +18,7 @@ It is technically an abstraction layer on top of SQLite3, and the DB files are e
 
 ## Usage
 
- > **See a real-world usage example in the form of a website hit counter [here](https://github.com/aaviator42/hit-counter/)!**
+ > **See a simple real-world usage example in the form of a website hit counter [here](https://github.com/aaviator42/hit-counter/)!**
 
 The easiest way to understand what this library does is to see it in action:
 
