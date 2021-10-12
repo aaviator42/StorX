@@ -371,7 +371,7 @@ returned value | e | meaning
 
 ## Installation
 1. Save `StorX.php` on your server. You can rename it.
-2. Include the file: `require StorX.php;`.
+2. Include the file: `require 'StorX.php';`.
 
 
 ## Keys and DB files
