@@ -80,6 +80,11 @@ $sx->closeFile();
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
  * `StorXInfo` is the only reserved key name. Don't use it!
 
+
+## Installation
+1. Save `StorX.php` on your server. You can rename it.
+2. Include the file: `require 'StorX.php';`.
+
 ## Functions
 
 Conditions where `e` is marked with `*` will throw an exception if exceptions are enabled.
@@ -369,11 +374,6 @@ returned value | e | meaning
 2. PHP's `sqlite3` extension. Almost always enabled by default.
 
 
-## Installation
-1. Save `StorX.php` on your server. You can rename it.
-2. Include the file: `require 'StorX.php';`.
-
-
 ## Keys and DB files
 Keys are [serialized](https://www.php.net/manual/en/function.serialize.php) and then stored in an [SQLite3 database file](https://www.sqlite.org/fileformat2.html).
 
@@ -398,4 +398,4 @@ As of StorX DB file version 3.0, the DB file contains a single table, `main`:
 Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
 -----
-Documentation updated `2020-10-01`
+Documentation updated `2020-10-11`
