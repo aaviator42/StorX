@@ -14,7 +14,9 @@ It was initially developed primarily to facilitate sharing of data between indep
 
 It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects are stored as "keys" in "DB files". These files can be read from and written to concurrently without any risk of data corruption, which is impossible with regular PHP file handling.
 
-It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's really easy to export the data to other DBs.
+It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
+
+ > You can also interface with StorX DB files stored on a different machine over the network. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
 
 ## Usage
 
@@ -398,4 +400,4 @@ As of StorX DB file version 3.0, the DB file contains a single table, `main`:
 Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
 -----
-Documentation updated `2020-10-11`
+Documentation updated `2020-10-12`
