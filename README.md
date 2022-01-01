@@ -1,8 +1,8 @@
 # StorX
 Simple PHP key-value flat-file data storage library
 
-Current library version: `3.5` | `2020-10-10`  
-Current DB file version: `3.0`
+Current library version: `3.6` | `2021-12-31`  
+Current DB file version: `3.1`
 
 License: `AGPLv3`
 
@@ -16,7 +16,7 @@ It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on 
 
 It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
 
- > You can also interface with StorX DB files stored on a different machine over the network. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
+ > You can also interface with StorX DB files stored on a different machine over the network/internet. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
 
 ## Usage
 
@@ -75,7 +75,7 @@ $sx->closeFile();
 
 ## Stuff you should know
 
- * For key names, stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
+ * Key names can technically be any strings, but for compatibility stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
  * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
  * Exceptions are enabled by default, this behaviour can be changed by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
@@ -89,7 +89,7 @@ $sx->closeFile();
 
 ## Functions
 
-Conditions where `e` is marked with `*` will throw an exception if exceptions are enabled.
+Conditions where `e` is marked with `*` will throw exceptions if `THROW_EXCEPTIONS` is set to `TRUE`.
 
 ### _File functions_
 
@@ -256,7 +256,8 @@ returned value | e | meaning
 ####  5. `\StorX\Sx::returnKey(keyName, store)`
 
 Reads a key and returns the value.  
-Use of this function is discouraged, use `readKey()` instead whenever possible!
+Use of this function is discouraged, because if exceptions are disabled and the key read fails, then detecting the failure is messy.
+Use `readKey()` instead whenever possible!
 
 ```php
 
@@ -379,15 +380,15 @@ returned value | e | meaning
 ## Keys and DB files
 Keys are [serialized](https://www.php.net/manual/en/function.serialize.php) and then stored in an [SQLite3 database file](https://www.sqlite.org/fileformat2.html).
 
-Because these are just regular files, you can access them using any software or library that supports SQLite3 DB files.
+Because these are just regular SQLite3 DB files, you can access them using any software or library that supports the format.
 
-As of StorX DB file version 3.0, the DB file contains a single table, `main`:
+As of StorX DB file version 3.1, the DB file contains a single table, `main`:
 
 ```
 +------------------------+
 | keyName     | keyValue |
 +-------------|----------+
-| StorXInfo   | v3.0     |
+| StorXInfo   | v3.1     |
 |             |          |
 | key1        | val1     |
 | key2        | val2     |
@@ -397,7 +398,7 @@ As of StorX DB file version 3.0, the DB file contains a single table, `main`:
 +-------------|----------+
 ```
 
-Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
+Key names are stored in the column `keyName` as base64-encoded strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
 -----
-Documentation updated `2020-10-12`
+Documentation updated `2021-12-31`
