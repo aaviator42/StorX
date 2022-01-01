@@ -1,5 +1,5 @@
 # StorX
-Simple PHP key-value flat-file data storage library
+Simple (but robust!) PHP key-value flat-file data storage library
 
 Current library version: `3.6` | `2021-12-31`  
 Current DB file version: `3.1`
