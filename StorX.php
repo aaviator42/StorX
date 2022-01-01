@@ -3,10 +3,11 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 3.5
-StorX DB file format version: v3.0
+StorX.php version: 3.6
 
-2021-10-10
+StorX DB file format version: 3.1
+
+2021-12-31
 
 
 */
@@ -15,7 +16,7 @@ StorX DB file format version: v3.0
 namespace StorX;
 use Exception;
 
-const THROW_EXCEPTIONS = 1; //0: return error codes, 1: throw exceptions
+const THROW_EXCEPTIONS = TRUE; //0: return error codes, 1: throw exceptions
 
 
 function createFile($filename){
@@ -397,9 +398,10 @@ class Sx{
 	//KEY OPERATIONS
 	public function readKey($keyName, &$store){
 		if($keyName === "StorXInfo"){
-			$store = "3.3";
+			$store = "3.1";
 			return 1;
 		}
+		$keyName = base64_encode($keyName);
 		
 		if(!$this->fileStatus){
 			//no file open
@@ -426,8 +428,11 @@ class Sx{
 
 	public function returnKey($keyName){
 		if($keyName === "StorXInfo"){
-			return "3.3";
+			return "3.1";
 		}
+		
+		$keyName = base64_encode($keyName);
+		
 		if(!$this->fileStatus){
 			//no file open
 			if(THROW_EXCEPTIONS){
@@ -453,11 +458,13 @@ class Sx{
 	public function writeKey($keyName, $keyValue){
 		if($keyName === "StorXInfo"){
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+				throw new Exception("[StorX: writeKey()] Don't be naughty!" . PHP_EOL);				
 			} else {
 				return 0; 
 			}
 		}
+		
+		$keyName = base64_encode($keyName);
 		
 		if(!$this->fileStatus){
 			//no file open
@@ -513,11 +520,13 @@ class Sx{
 	public function modifyKey($keyName, $keyValue){
 		if($keyName === "StorXInfo"){
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+				throw new Exception("[StorX: modifyKey()] Don't be naughty!" . PHP_EOL);				
 			} else {
 				return 0; 
 			}
 		}
+		
+		$keyName = base64_encode($keyName);
 		
 		if(!$this->fileStatus){
 			//no file open
@@ -591,11 +600,13 @@ class Sx{
 	public function checkKey($keyName){
 		if($keyName === "StorXInfo"){
 			if(THROW_EXCEPTIONS){
-				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL);				
+				throw new Exception("[StorX: checkKey()] Don't be naughty!" . PHP_EOL);				
 			} else {
 				return 0; 
 			}
 		}
+		
+		$keyName = base64_encode($keyName);
 		
 		if(!$this->fileStatus){
 			//no file open
@@ -620,6 +631,8 @@ class Sx{
 				return 0; 
 			}
 		}
+		
+		$keyName = base64_encode($keyName);
 		
 		if(!$this->fileStatus){
 			//no file open
