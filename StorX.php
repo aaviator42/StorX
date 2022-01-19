@@ -3,12 +3,12 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 3.6
+
+StorX.php version: 3.7
 
 StorX DB file format version: 3.1
 
-2021-12-31
-
+2022-01-18
 
 */
 
@@ -16,7 +16,7 @@ StorX DB file format version: 3.1
 namespace StorX;
 use Exception;
 
-const THROW_EXCEPTIONS = TRUE; //0: return error codes, 1: throw exceptions
+const THROW_EXCEPTIONS = FALSE; //0: return error codes, 1: throw exceptions
 
 
 function createFile($filename){
@@ -423,6 +423,43 @@ class Sx{
 		
 		$result = $this->fileHandle->query("SELECT keyValue FROM main WHERE keyName='$keyName'");
 		$store = unserialize(base64_decode($result->fetchArray(SQLITE3_NUM)[0]));	//storing value in $store
+		return 1;
+	}
+	
+	public function readAllKeys(&$store){
+		if(!$this->fileStatus){
+			//no file open
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: readAllKeys()] No file open." . PHP_EOL);				
+			} else {
+				return 0;
+			}
+		}
+		
+		try {
+			$result = $this->fileHandle->query("SELECT * FROM main"); //read all rows
+			$resultArray = $result->fetchArray(SQLITE3_ASSOC); //skip StorXInfo row
+			$resultArray = $result->fetchArray(SQLITE3_ASSOC);
+		}
+		
+		catch (Exception $e){
+			//unable to read keys
+			//This is super unlikely, but still...
+			
+			if(THROW_EXCEPTIONS){
+				throw new Exception("[StorX: readAllKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL);						
+			} else {
+				return 0; 
+			}
+		}
+		
+		$output = array();
+		while($resultArray !== false){
+			$output[base64_decode($resultArray["keyName"])] = unserialize(base64_decode($resultArray["keyValue"]));
+			$resultArray = $result->fetchArray(SQLITE3_ASSOC);
+		}
+		
+		$store = $output;
 		return 1;
 	}
 
