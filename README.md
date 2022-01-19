@@ -1,7 +1,7 @@
 # StorX
 Simple (but robust!) PHP key-value flat-file data storage library
 
-Current library version: `3.6` | `2021-12-31`  
+Current library version: `3.7` | `2022-01-18`  
 Current DB file version: `3.1`
 
 License: `AGPLv3`
@@ -77,7 +77,7 @@ $sx->closeFile();
 
  * Key names can technically be any strings, but for compatibility stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
- * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
+ * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()`, `readAllKeys()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
  * Exceptions are enabled by default, this behaviour can be changed by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
  * `StorXInfo` is the only reserved key name. Don't use it!
@@ -270,7 +270,42 @@ returned value | e | meaning
 "`STORX_ERROR`"  |*  | key not found in DB file
 
 
-####  6. `\StorX\Sx::writeKey(keyName, keyValue)`
+####  6. `\StorX\Sx::readAllKeys(store)`
+
+Reads all keys and saves them as an associative array in `store`.
+
+The array is structured as:
+
+```php
+array(
+ key1 => val1,
+ key2 => val2,
+ key3 => val3
+ ...
+)
+```
+
+Usage:
+
+```php
+
+$keyArray = '';  //this statement is for readability, not strictly required
+$sx->readAllKeys($keyArray);
+//all keys are now in $keyArray
+
+echo $keyArray['username']; //echo value of 'username' key
+```
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |*  | unable to read keys from DB file
+`1`            |   | keys read successfully, and stored in `store`.
+
+
+
+
+####  7. `\StorX\Sx::writeKey(keyName, keyValue)`
 
 Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class.
 
@@ -296,7 +331,7 @@ returned value | e | meaning
 
 
 
-####  7. `\StorX\Sx::modifyKey(keyName, keyValue)`
+####  8. `\StorX\Sx::modifyKey(keyName, keyValue)`
 
 Modifies a key's value in the open DB file. If the key does not exist in the file then it is created. 
 
@@ -322,7 +357,7 @@ returned value | e | meaning
 
 
 
-####  8. `\StorX\Sx::checkKey(keyName)`
+####  9. `\StorX\Sx::checkKey(keyName)`
 
 Checks if a key exists in the open DB file.
 
@@ -346,7 +381,7 @@ returned value | e | meaning
 
 
 
-####  9. `\StorX\Sx::deleteKey(keyName)`
+####  10. `\StorX\Sx::deleteKey(keyName)`
 
 Deletes a key from the open DB file. 
 
@@ -401,4 +436,4 @@ As of StorX DB file version 3.1, the DB file contains a single table, `main`:
 Key names are stored in the column `keyName` as base64-encoded strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
 -----
-Documentation updated `2021-12-31`
+Documentation updated `2022-01-18`
