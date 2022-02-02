@@ -289,7 +289,6 @@ Usage:
 
 ```php
 
-$keyArray = '';  //this statement is for readability, not strictly required
 $sx->readAllKeys($keyArray);
 //all keys are now in $keyArray
 
