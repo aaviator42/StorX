@@ -89,6 +89,15 @@ $sx->closeFile();
 2. Include the file: `require 'StorX.php';`.
 
 ## Functions
+To work with a StorX DB file, we use a file handle object (sorta similar to how [fopen()](https://www.php.net/manual/en/function.fopen.php) works).
+
+We create one like this:
+
+```php
+$sx = new \StorX\Sx;
+```
+
+We then interface with this object using the following functions.
 
 Conditions where `e` is marked with `*` will throw an exception if exceptions are enabled.
 
@@ -186,17 +195,6 @@ returned value | e | meaning
 `4`            |   | an SQLite3 file exists but it's locked
 `5`            |   | a file exists but it's not an SQLite3 file
 
---------
-
-To actually work with a StorX DB file, we use a file handle object (sorta similar to how [fopen()](https://www.php.net/manual/en/function.fopen.php) works).
-
-We create one like this:
-
-```php
-$sx = new \StorX\Sx;
-```
-
-We then interface with this object using the following functions:
 
 ###  6. `\StorX\Sx::openFile(filename, mode)`
 
@@ -449,7 +447,7 @@ Code |  Meaning
 109 | Unable to commit changes 
 201 | Key doesn't exist 	
 202 | Key already exists 	
-203 | Unable to read keys 
+203 | Unable to read key(s)
 204 | Unable to write/modify key 
 205 | Unable to delete key 
 300 | SQLite3 error 
