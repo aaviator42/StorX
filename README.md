@@ -1,7 +1,7 @@
 # StorX
 Simple (but robust!) PHP key-value flat-file data storage library
 
-Current library version: `3.7` | `2022-01-18`  
+Current library version: `4.0` | `2022-02-21`  
 Current DB file version: `3.1`
 
 License: `AGPLv3`
@@ -12,9 +12,9 @@ StorX is an easy and robust way to write data (objects) in flat files as "keys",
 
 It was initially developed primarily to facilitate sharing of data between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
 
-It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects are stored as "keys" in "DB files". These files can be read from and written to concurrently without any risk of data corruption, which is impossible with regular PHP file handling.
+It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects are stored as "keys" in "DB files". These files can be read from and written to concurrently with (almost) no risk of data corruption, which is impossible with regular PHP file handling.
 
-It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the robustness of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
+It is technically an abstraction layer on top of SQLite3, and the DB files are essentially just [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the [robustness](https://www.sqlite.org/testing.html) of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
 
  > You can also interface with StorX DB files stored on a different machine over the network/internet. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
 
@@ -33,11 +33,11 @@ The easiest way to understand what this library does is to see it in action:
 //include the StorX library
 require 'StorX.php';	
 
-//create a DB file
-\StorX\createFile('testDB.dat');
-
 //create Sx 'handle' object to work with the DB file
 $sx = new \StorX\Sx;
+
+//create a DB file
+$sx->createFile('testDB.dat');
 
 //open the file for writing
 $sx->openFile('testDB.dat', 1);
@@ -78,7 +78,8 @@ $sx->closeFile();
  * Key names can technically be any strings, but for compatibility stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
  * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()`, `readAllKeys()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
- * Exceptions are enabled by default, this behaviour can be changed by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
+ * Exceptions are enabled by default, this behaviour can be changed by calling `\StorX\Sx::throwExceptions` or by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
+ * By default, StorX has a busy timeout of 1.5 seconds, this can be changed by calling `\StorX\Sx::setTimeout` or by changing the value of the constant `BUSY_TIMEOUT` at the beginning of `StorX.php`.
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
  * `StorXInfo` is the only reserved key name. Don't use it!
 
@@ -89,18 +90,48 @@ $sx->closeFile();
 
 ## Functions
 
-Conditions where `e` is marked with `*` will throw exceptions if `THROW_EXCEPTIONS` is set to `TRUE`.
+Conditions where `e` is marked with `*` will throw an exception if exceptions are enabled.
 
-### _File functions_
 
-This is how you create, check or delete a StorX DB file.
+### 1. `\StorX\Sx::throwExceptions(<bool>)`
 
-#### 1. `\StorX\createFile(<filename>)`
+If an error is encountered, StorX will throw an exception if set to `true`.  
+The default value for this can be changed by modifying the `THROW_EXCEPTIONS` constant in `StorX.php`.
+
+```php
+$sx = new \StorX\Sx;
+
+$sx->throwExceptions(true); //enable exceptions
+
+```
+
+Returns `true` if exceptions are enabled, `false` if they're not.
+
+
+### 2. `\StorX\Sx::setTimeout(<milliseconds>)`
+
+Tells SQLite how long to try for in case the DB file is locked. Learn more [here](https://www.sqlite.org/c3ref/busy_timeout.html).  
+The default value for this can be changed by modifying the `BUSY_TIMEOUT` constant in `StorX.php`.
+
+
+```php
+$sx = new \StorX\Sx;
+
+$sx->setTimeout(2500); //set timeout of 2.5 seconds
+
+```
+
+Returns the current set timeout value.
+
+
+### 3. `\StorX\Sx::createFile(<filename>)`
 
 Create a StorX DB file. 
 
 ```php
-if(\StorX\createFile('testDB.dat') === 1){
+$sx = new \StorX\Sx;
+
+if($sx->createFile('testDB.dat') === 1){
   echo 'testDB.dat created!';
 } else {
   echo 'error creating testDB.dat';
@@ -109,19 +140,17 @@ if(\StorX\createFile('testDB.dat') === 1){
 
 returned value | e | meaning
 ---------------|---|-------
-`0`            |*  | file doesn't exist and we're unable to create it
+`0`            |*  | unable to create file
 `1`            |   | file successfully created
-`2`            |   | StorX DB file already exists of same version
-`3`            |   | StorX DB file already exists, but of different version
-`4`            |   | SQLite3 file already exists but not a StorX DB
-`5`            |   | file already exists but it's not an SQLite3 file
 
-#### 2.  `\StorX\deleteFile(<filename>)`
+### 4.  `\StorX\Sx::deleteFile(<filename>)`
 
 Delete everything in a StorX DB file, then delete the file itself. Will work on all StorX DB files, regardless of DB file version. 
 
 ```php
-if(\StorX\deleteFile('testDB.dat') === 1){
+$sx = new \StorX\Sx;
+
+if($sx->deleteFile('testDB.dat') === 1){
   echo 'testDB.dat deleted!';
 } else {
   echo 'error deleting testDB.dat';
@@ -134,13 +163,14 @@ returned value | e | meaning
 `1`            |   | file does not exist
 `1`            |   | file *successfully* deleted
 
-#### 3. `\StorX\checkFile(<username>)`
+### 5. `\StorX\Sx::checkFile(<username>)`
 
 Check if a StorX DB file exists.
 
-
 ```php
-if(\StorX\checkFile('testDB.dat') === 1){
+$sx = new \StorX\Sx;
+
+if($sx->checkFile('testDB.dat') === 1){
   echo 'testDB.dat exists as a StorX DB file!';
 } else {
   echo 'testDB.dat doesn't exist as a StorX DB file!';
@@ -149,16 +179,14 @@ if(\StorX\checkFile('testDB.dat') === 1){
 
 returned value | e | meaning
 ---------------|---|-------
-`0`            |   | file doesn't exist 
-`1`            |   | StorX file of the correct version (3.0) exists
-`3`            |   | StorX DB file exists, but of a different version
-`4`            |   | SQLite3 file exists but not a StorX DB
-`5`            |   | file exists but it's not an SQLite3 file
+`0`            |   | the file doesn't exist 
+`1`            |   | a StorX file of the correct version (3.1) exists
+`2`            |   | a StorX DB file exists, but of a different version
+`3`            |   | an SQLite3 file exists but it's not a StorX DB
+`4`            |   | an SQLite3 file exists but it's locked
+`5`            |   | a file exists but it's not an SQLite3 file
 
-
-----
-
-### _Handle object functions_
+--------
 
 To actually work with a StorX DB file, we use a file handle object (sorta similar to how [fopen()](https://www.php.net/manual/en/function.fopen.php) works).
 
@@ -170,7 +198,7 @@ $sx = new \StorX\Sx;
 
 We then interface with this object using the following functions:
 
-####  1. `\StorX\Sx::openFile(filename, mode)`
+###  6. `\StorX\Sx::openFile(filename, mode)`
 
 Opens a StorX DB file for reading (and optionally) writing. 
 
@@ -194,7 +222,7 @@ returned value | e | meaning
 `0`            |*  | unable to open file 
 `1`            |   | successfully opened file
 
-####  2. `\StorX\Sx::closeFile(filename, mode)`
+###  7. `\StorX\Sx::closeFile(filename, mode)`
 
 Closes a StorX DB file. If file was opened for writing then changes are saved before it's closed.
 
@@ -213,7 +241,7 @@ returned value | e | meaning
 `1`            |   | no file open
 
 
-####  3. `\StorX\Sx::commitFile(filename, mode)`
+###  8. `\StorX\Sx::commitFile(filename, mode)`
 
 Saves changes made to an open StorX DB file, but keeps it open.
 
@@ -232,7 +260,7 @@ returned value | e | meaning
 `1`            |   | changes have been saved 
 
 
-####  4. `\StorX\Sx::readKey(keyName, store)`
+###  9. `\StorX\Sx::readKey(keyName, store)`
 
 Reads a key and saves the value in `store`.
 
@@ -253,7 +281,7 @@ returned value | e | meaning
 
 
 
-####  5. `\StorX\Sx::returnKey(keyName, store)`
+###  10. `\StorX\Sx::returnKey(keyName)`
 
 Reads a key and returns the value.  
 Use of this function is discouraged, because if exceptions are disabled and the key read fails, then detecting the failure is messy.
@@ -270,7 +298,7 @@ returned value | e | meaning
 "`STORX_ERROR`"  |*  | key not found in DB file
 
 
-####  6. `\StorX\Sx::readAllKeys(store)`
+###  11. `\StorX\Sx::readAllKeys(store)`
 
 Reads all keys and saves them as an associative array in `store`.
 
@@ -304,7 +332,7 @@ returned value | e | meaning
 
 
 
-####  7. `\StorX\Sx::writeKey(keyName, keyValue)`
+###  12. `\StorX\Sx::writeKey(keyName, keyValue)`
 
 Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class.
 
@@ -330,7 +358,7 @@ returned value | e | meaning
 
 
 
-####  8. `\StorX\Sx::modifyKey(keyName, keyValue)`
+###  13. `\StorX\Sx::modifyKey(keyName, keyValue)`
 
 Modifies a key's value in the open DB file. If the key does not exist in the file then it is created. 
 
@@ -356,7 +384,7 @@ returned value | e | meaning
 
 
 
-####  9. `\StorX\Sx::checkKey(keyName)`
+###  14. `\StorX\Sx::checkKey(keyName)`
 
 Checks if a key exists in the open DB file.
 
@@ -380,7 +408,7 @@ returned value | e | meaning
 
 
 
-####  10. `\StorX\Sx::deleteKey(keyName)`
+###  15. `\StorX\Sx::deleteKey(keyName)`
 
 Deletes a key from the open DB file. 
 
@@ -403,6 +431,28 @@ returned value | e | meaning
 `0`            |*  | unable to delete key
 `1`            |   | key deleted successfully
 
+## Exception Codes
+
+If exceptions are enabled, the thrown exceptions can have these exception codes:
+
+
+Code |  Meaning
+-----|--------
+101 | File not exist
+102 | No file open
+103 | File not locked 
+104 | File is locked 	
+105 | Not of matching StorX type 
+106 | Unable to create file 
+107 | Unable to delete file 
+108 | Unable to open file 
+109 | Unable to commit changes 
+201 | Key doesn't exist 	
+202 | Key already exists 	
+203 | Unable to read keys 
+204 | Unable to write/modify key 
+205 | Unable to delete key 
+300 | SQLite3 error 
 
 
 
@@ -434,5 +484,7 @@ As of StorX DB file version 3.1, the DB file contains a single table, `main`:
 
 Key names are stored in the column `keyName` as base64-encoded strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
 
+
+
 -----
-Documentation updated `2022-01-18`
+Documentation updated `2022-02-21`
