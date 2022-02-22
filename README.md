@@ -332,7 +332,7 @@ returned value | e | meaning
 
 ###  12. `\StorX\Sx::writeKey(keyName, keyValue)`
 
-Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class.
+Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class. Will fail if a key with the same keyName already exists.
 
 ```php
 
