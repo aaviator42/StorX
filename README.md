@@ -382,6 +382,45 @@ returned value | e | meaning
 
 
 
+###  14. `\StorX\Sx::modifyMultipleKeys(keyArray)`
+
+Reads multiple keys from an array and modifies them in the open DB file. 
+
+`keyArray` should be an associative array like such:
+
+```php
+array(
+ key1 => val1,
+ key2 => val2,
+ key3 => val3
+ ...
+)
+```
+
+If a key does not exist in the file then it is created. 
+
+As with `modifyKey()` and `writeKey()`, the value can be text, a variable, an array, NULL, or an object of any class.
+
+```php
+
+$sx->modifyKey('username', 'amit009'); 
+
+$array = array("pen", "pineapple", "apple"); //array
+$sx->writeKey('words', $array);
+
+```
+
+
+returned value | e | meaning
+---------------|---|-------
+`0`            |*  | no file open
+`0`            |*  | file not locked (not opened for writing)
+`0`            |*  | unable to modify key
+`0`            |*  | unable to write key
+`1`            |   | key value modified successfully
+
+
+
 ###  14. `\StorX\Sx::checkKey(keyName)`
 
 Checks if a key exists in the open DB file.
@@ -436,20 +475,22 @@ If exceptions are enabled, the thrown exceptions can have these exception codes:
 
 Code |  Meaning
 -----|--------
-101 | File not exist
+101 | File does not exist
 102 | No file open
-103 | File not locked 
-104 | File is locked 	
-105 | Not of matching StorX type 
+103 | File is not locked for writing (but should be)
+104 | File is locked (but shouldn't be)
+105 | File not of matching StorX version
 106 | Unable to create file 
 107 | Unable to delete file 
 108 | Unable to open file 
-109 | Unable to commit changes 
+109 | Unable to commit changes to file
+----|-------
 201 | Key doesn't exist 	
 202 | Key already exists 	
 203 | Unable to read key(s)
-204 | Unable to write/modify key 
+204 | Unable to write/modify key(s)
 205 | Unable to delete key 
+----|-------
 300 | SQLite3 error 
 
 
