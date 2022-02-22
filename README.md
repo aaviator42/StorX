@@ -77,7 +77,7 @@ $sx->closeFile();
 
  * Key names can technically be any strings, but for compatibility stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
- * Changes you make using `writeKey()`, `modifyKey()` or `deleteKey()` are immediately reflected in subsequent `readKey()`, `readAllKeys()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
+ * Changes you make using `writeKey()`, `modifyKey()`, `modifyMultipleKeys()` or `deleteKey()` are immediately reflected in subsequent `readKey()`, `readAllKeys()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
  * Exceptions are enabled by default, this behaviour can be changed by calling `\StorX\Sx::throwExceptions` or by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
  * By default, StorX has a busy timeout of 1.5 seconds, this can be changed by calling `\StorX\Sx::setTimeout` or by changing the value of the constant `BUSY_TIMEOUT` at the beginning of `StorX.php`.
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
@@ -366,9 +366,6 @@ Like with `writeKey()`, the value can be text, a variable, an array, NULL, or an
 
 $sx->modifyKey('username', 'amit009'); 
 
-$array = array("pen", "pineapple", "apple"); //array
-$sx->writeKey('words', $array);
-
 ```
 
 
@@ -403,10 +400,9 @@ As with `modifyKey()` and `writeKey()`, the value can be text, a variable, an ar
 
 ```php
 
-$sx->modifyKey('username', 'amit009'); 
+$array1 = array("v1" => 100, "v2" => 200, "v3" => "300");
 
-$array = array("pen", "pineapple", "apple"); //array
-$sx->writeKey('words', $array);
+$sx->modifyMultipleKeys($array1); 
 
 ```
 
@@ -417,7 +413,7 @@ returned value | e | meaning
 `0`            |*  | file not locked (not opened for writing)
 `0`            |*  | unable to modify key
 `0`            |*  | unable to write key
-`1`            |   | key value modified successfully
+`1`            |   | key values modified successfully
 
 
 
@@ -526,4 +522,4 @@ Key names are stored in the column `keyName` as base64-encoded strings, and the 
 
 
 -----
-Documentation updated `2022-02-21`
+Documentation updated `2022-02-22`
