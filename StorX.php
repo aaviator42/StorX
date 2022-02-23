@@ -4,11 +4,11 @@ StorX - PHP flat-file storage
 by @aaviator42
 
 
-StorX.php version: 4.0
+StorX.php version: 4.1
 
 StorX DB file format version: 3.1
 
-2022-02-21
+2022-02-22
 
 */
 
@@ -37,14 +37,14 @@ class Sx{
 	private $busyTimeout = BUSY_TIMEOUT;
 	
 	public function throwExceptions($throwExceptions = NULL){
-		if($throwExceptions !== NULL){
+		if(!empty($throwExceptions)){
 			$this->throwExceptions = (bool)$throwExceptions;
 		}
 		return $this->throwExceptions;
 	}
 	
 	public function setTimeout($busyTimeout = NULL){
-		if($busyTimeout !== NULL){
+		if(!empty($busyTimeout)){
 			$this->busyTimeout = (int)$busyTimeout;
 		}
 		return $this->busyTimeout;
@@ -70,7 +70,7 @@ class Sx{
 			catch (Exception $e) { 
 				//unable to create+open+lock DB
 				if($this->throwExceptions){
-					throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);
+					throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 				} else {
 					return 0; 
 				}
@@ -96,7 +96,7 @@ class Sx{
 				$tempDB->close();
 				unlink($filename);
 				if($this->throwExceptions){
-					throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);
+					throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 				} else {
 					return 0; 
 				}
@@ -219,7 +219,7 @@ class Sx{
 		catch (Exception $e) {
 			//unable to drop 'main' table
 			if($this->throwExceptions){
-				throw new Exception("[StorX: deleteFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
+				throw new Exception("[StorX: deleteFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
 			} else {
 				return 0; 
 			}
@@ -256,7 +256,6 @@ class Sx{
 			//something is wrong
 			
 			if($fileCheck !== 1){
-			error_log("ERRR $fileCheck");
 				//something is still wrong
 				if($fileCheck === 4){
 					if($this->throwExceptions){
@@ -291,7 +290,7 @@ class Sx{
 				//unable to open DB for readwrite
 				
 				if($this->throwExceptions){
-					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
+					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
 				} else {
 					return 0; 
 				}
@@ -313,7 +312,7 @@ class Sx{
 					}
 				} else {
 					if($this->throwExceptions){
-						throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
+						throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
 					} else {
 						return 0; 
 					}
@@ -338,7 +337,7 @@ class Sx{
 				//unable to open DB for readonly
 				//because we're using transactions, this is super unlikely, but still...
 				if($this->throwExceptions){				
-					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);
+					throw new Exception("[StorX: openFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 				} else {
 					return 0; 
 				}
@@ -361,7 +360,7 @@ class Sx{
 					//unable to commit transaction to DB
 					//This is super unlikely, but still...
 					if($this->throwExceptions){
-						throw new Exception("[StorX: closeFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
+						throw new Exception("[StorX: closeFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
 					} else {
 						return 0; 
 					}
@@ -392,7 +391,7 @@ class Sx{
 					//This is super unlikely, but still...
 					
 					if($this->throwExceptions){
-						throw new Exception("[StorX: commitFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);						
+						throw new Exception("[StorX: commitFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);						
 					} else {
 						return 0; 
 					}
@@ -463,7 +462,7 @@ class Sx{
 			//This is super unlikely, but still...
 			
 			if($this->throwExceptions){
-				throw new Exception("[StorX: readAllKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);						
+				throw new Exception("[StorX: readAllKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);						
 			} else {
 				return 0; 
 			}
@@ -553,11 +552,12 @@ class Sx{
 		} 
 		catch (Exception $e) {
 			if($this->throwExceptions){
-				throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
+				throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
 			} else {
 				return 0; 
 			}
 		}
+		return 1;
 	}
 	
 	public function modifyKey($keyName, $keyValue){
@@ -604,6 +604,7 @@ class Sx{
 					return 0; 
 				}
 			}
+			return 1;
 		} else {
 			//key doesn't exist
 			$keyValue = base64_encode(serialize($keyValue));
@@ -617,7 +618,67 @@ class Sx{
 					return 0; 
 				}
 			}
+			return 1;
 		}
+	}
+	
+	public function modifyMultipleKeys($keyArray){
+		if(!$this->fileStatus){
+			//no file open
+			if($this->throwExceptions){
+				throw new Exception("[StorX: modifyMultipleKeys()] No file open." . PHP_EOL, 102);				
+			} else {
+				return 0; 
+			}
+		}
+		
+		if(!$this->lockStatus){
+			//file not locked
+			if($this->throwExceptions){
+				throw new Exception("[StorX: modifyMultipleKeys()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);				
+			} else {
+				return 0; 
+			}
+		}
+		
+		foreach($keyArray as $keyName => $keyValue){
+			if($keyName === "StorXInfo"){
+				continue;
+			}
+			
+			$keyNameEncoded = base64_encode($keyName);
+			
+			$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
+			if($result->fetchArray(SQLITE3_NUM)[0] !== 0){
+				//key already exists
+				
+				$keyValue = base64_encode(serialize($keyValue));			
+				try {
+					$this->fileHandle->exec("UPDATE main SET keyValue='$keyValue' WHERE keyName='$keyNameEncoded'");
+				}
+				catch (Exception $e) {
+					if($this->throwExceptions){
+						throw new Exception("[StorX: modifyMultipleKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
+					} else {
+						return 0; 
+					}
+				}
+			} else {
+				//key doesn't exist
+				$keyValue = base64_encode(serialize($keyValue));
+				try {
+					$this->fileHandle->exec("INSERT INTO main VALUES ('$keyNameEncoded', '$keyValue')");
+				}
+				catch (Exception $e) {
+					if($this->throwExceptions){
+						throw new Exception("[StorX: modifyMultipleKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
+					} else {
+						return 0; 
+					}
+				}
+			}
+		}
+		return 1;
 	}
 	
 	public function checkKey($keyName){
@@ -681,7 +742,7 @@ class Sx{
 		catch (Exception $e) { 
 			//unable to delete key
 			if($this->throwExceptions){
-				throw new Exception("[StorX: deleteKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);
+				throw new Exception("[StorX: deleteKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 			} else {
 				return 0; 
 			}
