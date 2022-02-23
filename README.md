@@ -78,8 +78,8 @@ $sx->closeFile();
  * Key names can technically be any strings, but for compatibility stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
  * Changes you make using `writeKey()`, `modifyKey()`, `modifyMultipleKeys()` or `deleteKey()` are immediately reflected in subsequent `readKey()`, `readAllKeys()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
- * Exceptions are enabled by default, this behaviour can be changed by calling `\StorX\Sx::throwExceptions` or by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
- * By default, StorX has a busy timeout of 1.5 seconds, this can be changed by calling `\StorX\Sx::setTimeout` or by changing the value of the constant `BUSY_TIMEOUT` at the beginning of `StorX.php`.
+ * Exceptions are enabled by default, this behaviour can be changed by calling `\StorX\Sx::throwExceptions()` or by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
+ * By default, StorX has a busy timeout of 1.5 seconds, this can be changed by calling `\StorX\Sx::setTimeout()` or by changing the value of the constant `BUSY_TIMEOUT` at the beginning of `StorX.php`.
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
  * `StorXInfo` is the only reserved key name. Don't use it!
 
@@ -480,13 +480,13 @@ Code |  Meaning
 107 | Unable to delete file 
 108 | Unable to open file 
 109 | Unable to commit changes to file
-----|-------
+-|-
 201 | Key doesn't exist 	
 202 | Key already exists 	
 203 | Unable to read key(s)
 204 | Unable to write/modify key(s)
 205 | Unable to delete key 
-----|-------
+-|-
 300 | SQLite3 error 
 
 
