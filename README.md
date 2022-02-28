@@ -196,7 +196,7 @@ returned value | e | meaning
 `5`            |   | a file exists but it's not an SQLite3 file
 
 
-###  6. `\StorX\Sx::openFile(filename, mode)`
+###  6. `\StorX\Sx::openFile(<filename>, <mode>)`
 
 Opens a StorX DB file for reading (and optionally) writing. 
 
@@ -220,7 +220,7 @@ returned value | e | meaning
 `0`            |*  | unable to open file 
 `1`            |   | successfully opened file
 
-###  7. `\StorX\Sx::closeFile(filename, mode)`
+###  7. `\StorX\Sx::closeFile()`
 
 Closes a StorX DB file. If file was opened for writing then changes are saved before it's closed.
 
@@ -239,7 +239,7 @@ returned value | e | meaning
 `1`            |   | no file open
 
 
-###  8. `\StorX\Sx::commitFile(filename, mode)`
+###  8. `\StorX\Sx::commitFile()`
 
 Saves changes made to an open StorX DB file, but keeps it open.
 
@@ -258,7 +258,7 @@ returned value | e | meaning
 `1`            |   | changes have been saved 
 
 
-###  9. `\StorX\Sx::readKey(keyName, store)`
+###  9. `\StorX\Sx::readKey(<keyName>, <store>)`
 
 Reads a key and saves the value in `store`.
 
@@ -279,7 +279,7 @@ returned value | e | meaning
 
 
 
-###  10. `\StorX\Sx::returnKey(keyName)`
+###  10. `\StorX\Sx::returnKey(<keyName>)`
 
 Reads a key and returns the value.  
 Use of this function is discouraged, because if exceptions are disabled and the key read fails, then detecting the failure is messy.
@@ -296,7 +296,7 @@ returned value | e | meaning
 "`STORX_ERROR`"  |*  | key not found in DB file
 
 
-###  11. `\StorX\Sx::readAllKeys(store)`
+###  11. `\StorX\Sx::readAllKeys(<store>)`
 
 Reads all keys and saves them as an associative array in `store`.
 
@@ -330,7 +330,7 @@ returned value | e | meaning
 
 
 
-###  12. `\StorX\Sx::writeKey(keyName, keyValue)`
+###  12. `\StorX\Sx::writeKey(<keyName>, <keyValue>)`
 
 Writes the key along with the value to the open DB file. The value can be text, a variable, an array, NULL, or an object of any class. Will fail if a key with the same keyName already exists.
 
@@ -356,7 +356,7 @@ returned value | e | meaning
 
 
 
-###  13. `\StorX\Sx::modifyKey(keyName, keyValue)`
+###  13. `\StorX\Sx::modifyKey(<keyName>, <keyValue>)`
 
 Modifies a key's value in the open DB file. If the key does not exist in the file then it is created. 
 
@@ -379,7 +379,7 @@ returned value | e | meaning
 
 
 
-###  14. `\StorX\Sx::modifyMultipleKeys(keyArray)`
+###  14. `\StorX\Sx::modifyMultipleKeys(<keyArray>)`
 
 Reads multiple keys from an array and modifies them in the open DB file. 
 
@@ -417,7 +417,7 @@ returned value | e | meaning
 
 
 
-###  14. `\StorX\Sx::checkKey(keyName)`
+###  14. `\StorX\Sx::checkKey(<keyName>)`
 
 Checks if a key exists in the open DB file.
 
@@ -441,7 +441,7 @@ returned value | e | meaning
 
 
 
-###  15. `\StorX\Sx::deleteKey(keyName)`
+###  15. `\StorX\Sx::deleteKey(<keyName>)`
 
 Deletes a key from the open DB file. 
 
@@ -492,7 +492,7 @@ Code |  Meaning
 
 
 ## Requirements
-1. [Supported versions of PHP](https://www.php.net/supported-versions.php). At the time of writing, that's PHP `7.3+`. StorX will almost certainly work on older versions, but we don't test it on those, so be careful, do your own testing.
+1. [Supported versions of PHP](https://www.php.net/supported-versions.php). At the time of writing, that's PHP `7.4+`. StorX will almost certainly work on older versions, but we don't test it on those, so be careful, do your own testing.
 2. PHP's `sqlite3` extension. Almost always enabled by default.
 
 
@@ -522,4 +522,4 @@ Key names are stored in the column `keyName` as base64-encoded strings, and the 
 
 
 -----
-Documentation updated `2022-02-22`
+Documentation updated `2022-02-28`
