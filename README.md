@@ -8,9 +8,9 @@ License: `AGPLv3`
 
 ## About 
 
-StorX is an easy and robust way to write data (objects) in flat files as "keys", which you can read and modify later.  
+StorX is an easy and robust way to write data (objects) to flat files as "keys", which you can read and modify later.  
 
-It was initially developed primarily to facilitate sharing of data between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
+It was initially developed primarily to facilitate sharing of objects between independent PHP scripts and sessions, but can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
 
 It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects are stored as "keys" in "DB files". These files can be read from and written to concurrently with (almost) no risk of data corruption, which is impossible with regular PHP file handling.
 
@@ -522,4 +522,4 @@ Key names are stored in the column `keyName` as base64-encoded strings, and the 
 
 
 -----
-Documentation updated `2022-02-28`
+Documentation updated `2022-04-13`
