@@ -82,6 +82,8 @@ $sx->closeFile();
  * By default, StorX has a busy timeout of 1.5 seconds, this can be changed by calling `\StorX\Sx::setTimeout()` or by changing the value of the constant `BUSY_TIMEOUT` at the beginning of `StorX.php`.
  * Because keyValues are serialized before storage, they can be objects of any class (or text/variables/NULL/arrays/etc).  
  * `StorXInfo` is the only reserved key name. Don't use it!
+ * A functions and scripts to backup StorX DB files can be found [here](https://github.com/aaviator42/StorX-Backup).
+ * You can also interface with StorX DB files stored on a different machine over the network/internet. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
 
 
 ## Installation
@@ -522,4 +524,4 @@ Key names are stored in the column `keyName` as base64-encoded strings, and the 
 
 
 -----
-Documentation updated `2022-04-13`
+Documentation updated `2024-05-17`
