@@ -184,7 +184,7 @@ $sx = new \StorX\Sx;
 if($sx->checkFile('testDB.dat') === 1){
   echo 'testDB.dat exists as a StorX DB file!';
 } else {
-  echo 'testDB.dat doesn't exist as a StorX DB file!';
+  echo "testDB.dat doesn't exist as a StorX DB file!";
 }
 ```
 
@@ -524,4 +524,4 @@ Key names are stored in the column `keyName` as base64-encoded strings, and the 
 
 
 -----
-Documentation updated `2024-05-17`
+Documentation updated `2024-09-11`
