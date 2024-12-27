@@ -1,10 +1,12 @@
 # StorX
 Simple (but robust!) PHP key-value flat-file data storage library
 
-Current library version: `4.1` | `2022-02-22`  
-Current DB file version: `3.1`
+Current library version: `5.0` | `2024-12-27`  
+Current DB file version: `5.0`
 
 License: `AGPLv3`
+
+For historical purposes and legacy projects, `v4.1` of the library can be found [here](https://github.com/aaviator42/StorX/tree/lib-v4.1%3B-db-file-v3.1).
 
 ## About 
 
@@ -75,7 +77,7 @@ $sx->closeFile();
 
 ## Stuff you should know
 
- * Key names can technically be any strings, but for compatibility stick with the same naming pattern as with PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
+ * Key names use the same naming pattern as PHP [variables](https://www.php.net/manual/en/language.variables.basics.php):
     > A valid variable name starts with a letter or underscore, followed by any number of letters, numbers, or underscores. 
  * Changes you make using `writeKey()`, `modifyKey()`, `modifyMultipleKeys()` or `deleteKey()` are immediately reflected in subsequent `readKey()`, `readAllKeys()` or `returnKey()` function calls, but are not saved to disk until you call either `closeFile()` or `commitFile()`. 
  * Exceptions are enabled by default, this behaviour can be changed by calling `\StorX\Sx::throwExceptions()` or by changing the value of the constant `THROW_EXCEPTIONS` at the beginning of `StorX.php`.
@@ -488,13 +490,14 @@ Code |  Meaning
 203 | Unable to read key(s)
 204 | Unable to write/modify key(s)
 205 | Unable to delete key 
+206 | Invalid key name 
 -|-
 300 | SQLite3 error 
 
 
 
 ## Requirements
-1. [Supported versions of PHP](https://www.php.net/supported-versions.php). At the time of writing, that's PHP `7.4+`. StorX will almost certainly work on older versions, but we don't test it on those, so be careful, do your own testing.
+1. [Supported versions of PHP](https://www.php.net/supported-versions.php). At the time of writing, that's PHP `8.1+`. StorX will almost certainly work on older versions of PHP, but we don't test it on those, so be careful, do your own testing.
 2. PHP's `sqlite3` extension. Almost always enabled by default.
 
 
@@ -509,7 +512,7 @@ As of StorX DB file version 3.1, the DB file contains a single table, `main`:
 +------------------------+
 | keyName     | keyValue |
 +-------------|----------+
-| StorXInfo   | v3.1     |
+| StorXInfo   | v5.0     |
 |             |          |
 | key1        | val1     |
 | key2        | val2     |
@@ -519,9 +522,9 @@ As of StorX DB file version 3.1, the DB file contains a single table, `main`:
 +-------------|----------+
 ```
 
-Key names are stored in the column `keyName` as base64-encoded strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `base64_encode(serialize(<data>))`.
+Key names are stored in the column `keyName` as strings, and the corresponding data is stored in the column `keyValue` as strings in the PHP serialized format: `serialize(<data>)`.
 
 
 
 -----
-Documentation updated `2024-09-11`
+Documentation updated `2024-12-27`
