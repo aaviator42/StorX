@@ -3,12 +3,11 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
+StorX.php version: 5.0
+StorX DB file format version: 5.0
 
-StorX.php version: 4.1
-
-StorX DB file format version: 3.1
-
-2022-02-22
+2024-12-27
+License: AGPLv3
 
 */
 
@@ -37,7 +36,7 @@ class Sx{
 	private $busyTimeout = BUSY_TIMEOUT;
 	
 	public function throwExceptions($throwExceptions = NULL){
-		if(!empty($throwExceptions)){
+		if($throwExceptions !== NULL){
 			$this->throwExceptions = (bool)$throwExceptions;
 		}
 		return $this->throwExceptions;
@@ -85,7 +84,7 @@ class Sx{
 			
 			// creating info row in table 'main'
 			$tempDB->exec("	INSERT INTO main
-							VALUES ('StorXInfo', 'v3.1')");
+							VALUES ('StorXInfo', 'v5.0')");
 					
 			// close DB
 			try {
@@ -107,7 +106,7 @@ class Sx{
 		} else {
 			// unable to create DB file
 			if($this->throwExceptions){
-				throw new Exception("[StorX: createFile()] Unable to create file [$filename]." . PHP_EOL, 106);
+				throw new Exception("[StorX: createFile()] Unable to create file [$filename], already exists." . PHP_EOL, 106);
 			} else {
 				return 0;
 			}
@@ -166,7 +165,7 @@ class Sx{
 				// File is not a valid StorX DB!
 				$tempDB->close();
 				return 3;
-			} else if($StorXInfo === "v3.1"){
+			} else if($StorXInfo === "v5.0"){
 				// File is a valid StorX DB of the same version
 				$tempDB->close();
 				return 1;
@@ -253,8 +252,9 @@ class Sx{
 		
 		$fileCheck = $this->checkFile($filename);
 		if($fileCheck !== 1){
-			// something is wrong
+			// something is wrong, try again?
 			
+			$fileCheck = $this->checkFile($filename);			
 			if($fileCheck !== 1){
 				// something is still wrong
 				if($fileCheck === 4){
@@ -267,7 +267,7 @@ class Sx{
 				} else {
 					// file is not of StorX type
 					if($this->throwExceptions){
-						throw new Exception("[StorX: openFile()] File [$filename] is not of matching StorX version." . PHP_EOL, 105);
+						throw new Exception("[StorX: openFile()] File [$filename] is not of a DB file version matching StorX library (expecting v5.0)." . PHP_EOL, 105);
 					} else {
 						return 0;  
 					}
@@ -412,342 +412,413 @@ class Sx{
 	
 	// KEY OPERATIONS
 	public function readKey($keyName, &$store){
-		if($keyName === "StorXInfo"){
-			$store = "3.1";
+		if ($keyName === "StorXInfo") {
+			$store = "5.0";
 			return 1;
 		}
-		$keyNameEncoded = base64_encode($keyName);
-		
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: readKey()] No file open." . PHP_EOL, 102);				
+
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: readKey()] No file open." . PHP_EOL, 102);
 			} else {
 				return 0;
 			}
 		}
-		
-		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
-		if($result->fetchArray(SQLITE3_NUM)[0] === 0){
-			if($this->throwExceptions){
-				throw new Exception("[StorX: readKey()] Key [$keyName] doesn't exist in file [$this->DBfile]." . PHP_EOL, 201);				
+
+		// Prepare and execute the statement to check key existence
+		$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
+		$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+		$result = $stmt->execute();
+
+		if ($result->fetchArray(SQLITE3_NUM)[0] === 0) {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: readKey()] Key [$keyName] doesn't exist in file [$this->DBfile]." . PHP_EOL, 201);
 			} else {
-				return 0;	// key not found!
+				return 0; // Key not found
 			}
 		}
-		
-		$result = $this->fileHandle->query("SELECT keyValue FROM main WHERE keyName='$keyNameEncoded'");
-		$store = unserialize(base64_decode($result->fetchArray(SQLITE3_NUM)[0]));	// storing value in $store
+
+		// Prepare and execute the statement to retrieve the key value
+		$stmt = $this->fileHandle->prepare("SELECT keyValue FROM main WHERE keyName = :keyName");
+		$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+		$result = $stmt->execute();
+
+		$keyValue = $result->fetchArray(SQLITE3_NUM)[0];
+		$store = unserialize($keyValue); // Storing value in $store
+
 		return 1;
 	}
 	
 	public function readAllKeys(&$store){
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: readAllKeys()] No file open." . PHP_EOL, 102);				
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: readAllKeys()] No file open." . PHP_EOL, 102);
 			} else {
 				return 0;
 			}
 		}
-		
+
 		try {
-			$result = $this->fileHandle->query("SELECT * FROM main"); // read all rows
-			$resultArray = $result->fetchArray(SQLITE3_ASSOC); // skip StorXInfo row
-			$resultArray = $result->fetchArray(SQLITE3_ASSOC);
-		}
-		
-		catch (Exception $e){
-			// unable to read keys
+			// Prepare and execute the statement to read all rows
+			$stmt = $this->fileHandle->prepare("SELECT * FROM main");
+			$result = $stmt->execute();
+		} catch (Exception $e) {
+			// Unable to read keys
 			// This is super unlikely, but still...
-			
-			if($this->throwExceptions){
-				throw new Exception("[StorX: readAllKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);						
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: readAllKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		
+
 		$output = array();
-		while($resultArray !== false){
-			$output[base64_decode($resultArray["keyName"])] = unserialize(base64_decode($resultArray["keyValue"]));
-			$resultArray = $result->fetchArray(SQLITE3_ASSOC);
+		while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+			if ( $row["keyName"] !== "StorXInfo" ){
+				$output[$row["keyName"]] = unserialize($row["keyValue"]);
+			}
 		}
-		
+
 		$store = $output;
 		return 1;
 	}
 
 	public function returnKey($keyName){
-		if($keyName === "StorXInfo"){
-			return "3.1";
+		if ($keyName === "StorXInfo") {
+			return "5.0";
 		}
-		
-		$keyNameEncoded = base64_encode($keyName);
-		
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: returnKey()] No file open." . PHP_EOL, 102);				
+
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: returnKey()] No file open." . PHP_EOL, 102);
 			} else {
 				return "STORX_ERROR";
 			}
 		}
 		
-		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
-		if($result->fetchArray(SQLITE3_NUM)[0] === 0){
-			if($this->throwExceptions){
-				throw new Exception("[StorX: returnKey()] Key doesn't exist in file [$this->DBfile]." . PHP_EOL, 201);				
+		try {
+			// Prepare and execute the statement to check key existence
+			$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$result = $stmt->execute();
+		} catch (Exception $e) {
+			// Unable to read key
+			// This is super unlikely, but still...
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: returnKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 			} else {
-				return "STORX_ERROR";	// key not found!
+				return 0;
+			}
+		}
+
+		if ($result->fetchArray(SQLITE3_NUM)[0] === 0) {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: returnKey()] Key doesn't exist in file [$this->DBfile]." . PHP_EOL, 201);
+			} else {
+				return "STORX_ERROR"; // Key not found
 			}
 		}
 		
-		$result = $this->fileHandle->query("SELECT keyValue FROM main WHERE keyName='$keyNameEncoded'");
-		return unserialize(base64_decode($result->fetchArray(SQLITE3_NUM)[0]));	// returning value
+		try {
+			// Prepare and execute the statement to retrieve the key value
+			$stmt = $this->fileHandle->prepare("SELECT keyValue FROM main WHERE keyName = :keyName");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$result = $stmt->execute();
+		} catch (Exception $e) {
+			// Unable to read key
+			// This is super unlikely, but still...
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: returnKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
+			} else {
+				return 0;
+			}
+		}
+		
+		$keyValue = $result->fetchArray(SQLITE3_NUM)[0];
+		return unserialize($keyValue); // Returning value
 	}
 	
 	public function writeKey($keyName, $keyValue){
-		if($keyName === "StorXInfo"){
-			if($this->throwExceptions){
-				throw new Exception("[StorX: writeKey()] Don't be naughty!" . PHP_EOL, 666);				
+		if ($keyName === "StorXInfo") {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: writeKey()] Don't be naughty!" . PHP_EOL, 666);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
 		
-		$keyNameEncoded = base64_encode($keyName);
-		
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: writeKey()] No file open." . PHP_EOL, 102);				
+		if(!$this->checkKeyName($keyName)){
+			// Invalid key name
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: writeKey()] Invalid key name \"$keyName\"." . PHP_EOL, 206);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		if(!$this->lockStatus){
-			// file not locked
-			if($this->throwExceptions){
-				throw new Exception("[StorX: writeKey()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);				
+
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: writeKey()] No file open." . PHP_EOL, 102);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		
-		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
-		if($result->fetchArray(SQLITE3_NUM)[0] !== 0){
-			// key already exists!
-			if($this->throwExceptions){
-				throw new Exception("[StorX: writeKey()] Key [$keyName] already exists in file [$this->DBfile]." . PHP_EOL, 202);				
+		if (!$this->lockStatus) {
+			// File not locked
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: writeKey()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		
-		// base64 because serialize()'s output contains chars that break SQLite commands
-		$keyValue = base64_encode(serialize($keyValue));
+
 		try {
-			$this->fileHandle->exec("INSERT INTO main VALUES ('$keyNameEncoded', '$keyValue')");
-		} 
-		catch (Exception $e) {
-			if($this->throwExceptions){
-				throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
+			// Prepare and execute the statement to check key existence
+			$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$result = $stmt->execute();
+
+			if ($result->fetchArray(SQLITE3_NUM)[0] !== 0) {
+				// Key already exists
+				if ($this->throwExceptions) {
+					throw new Exception("[StorX: writeKey()] Key [$keyName] already exists in file [$this->DBfile]." . PHP_EOL, 202);
+				} else {
+					return 0;
+				}
+			}
+
+			// Serialize and write the key-value pair
+			$keyValueSerialized = serialize($keyValue);
+			$stmt = $this->fileHandle->prepare("INSERT INTO main (keyName, keyValue) VALUES (:keyName, :keyValue)");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$stmt->bindValue(':keyValue', $keyValueSerialized, SQLITE3_TEXT);
+			$stmt->execute();
+		} catch (Exception $e) {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: writeKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
+
 		return 1;
 	}
 	
 	public function modifyKey($keyName, $keyValue){
-		if($keyName === "StorXInfo"){
-			if($this->throwExceptions){
-				throw new Exception("[StorX: modifyKey()] Don't be naughty!" . PHP_EOL, 666);				
+		if ($keyName === "StorXInfo") {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyKey()] Don't be naughty!" . PHP_EOL, 666);                
 			} else {
 				return 0; 
 			}
 		}
-		
-		$keyNameEncoded = base64_encode($keyName);
-		
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: modifyKey()] No file open." . PHP_EOL, 102);				
+
+		if (!$this->checkKeyName($keyName)) {
+			// Invalid key name
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyKey()] Invalid key name \"$keyName\"." . PHP_EOL, 206);
+			} else {
+				return 0;
+			}
+		}
+
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyKey()] No file open." . PHP_EOL, 102);                
 			} else {
 				return 0; 
 			}
 		}
-		
-		if(!$this->lockStatus){
-			// file not locked
-			if($this->throwExceptions){
-				throw new Exception("[StorX: modifyKey()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);				
+
+		if (!$this->lockStatus) {
+			// File not locked
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyKey()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);                
 			} else {
 				return 0; 
 			}
 		}
-		
-		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
-		if($result->fetchArray(SQLITE3_NUM)[0] !== 0){
-			// key already exists
-			
-			$keyValue = base64_encode(serialize($keyValue));			
-			try {
-				$this->fileHandle->exec("UPDATE main SET keyValue='$keyValue' WHERE keyName='$keyNameEncoded'");
+
+		try {
+			// Prepare statement to check if the key exists
+			$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$result = $stmt->execute();
+
+			if ($result->fetchArray(SQLITE3_NUM)[0] !== 0) {
+				// Key exists, update it
+				$keyValueSerialized = serialize($keyValue);
+				$stmt = $this->fileHandle->prepare("UPDATE main SET keyValue = :keyValue WHERE keyName = :keyName");
+				$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+				$stmt->bindValue(':keyValue', $keyValueSerialized, SQLITE3_TEXT);
+				$stmt->execute();
+			} else {
+				// Key does not exist, insert it
+				$keyValueSerialized = serialize($keyValue);
+				$stmt = $this->fileHandle->prepare("INSERT INTO main (keyName, keyValue) VALUES (:keyName, :keyValue)");
+				$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+				$stmt->bindValue(':keyValue', $keyValueSerialized, SQLITE3_TEXT);
+				$stmt->execute();
 			}
-			catch (Exception $e) {
-				if($this->throwExceptions){
-					throw new Exception("[StorX: modifyKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
-				} else {
-					return 0; 
-				}
+		} catch (Exception $e) {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);                
+			} else {
+				return 0; 
 			}
-			return 1;
-		} else {
-			// key doesn't exist
-			$keyValue = base64_encode(serialize($keyValue));
-			try {
-				$this->fileHandle->exec("INSERT INTO main VALUES ('$keyNameEncoded', '$keyValue')");
-			}
-			catch (Exception $e) {
-				if($this->throwExceptions){
-					throw new Exception("[StorX: modifyKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 200);				
-				} else {
-					return 0; 
-				}
-			}
-			return 1;
 		}
+
+		return 1;
 	}
-	
+
 	public function modifyMultipleKeys($keyArray){
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: modifyMultipleKeys()] No file open." . PHP_EOL, 102);				
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyMultipleKeys()] No file open." . PHP_EOL, 102);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		
-		if(!$this->lockStatus){
-			// file not locked
-			if($this->throwExceptions){
-				throw new Exception("[StorX: modifyMultipleKeys()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);				
+
+		if (!$this->lockStatus) {
+			// File not locked
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: modifyMultipleKeys()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		
-		foreach($keyArray as $keyName => $keyValue){
-			if($keyName === "StorXInfo"){
+
+		foreach ($keyArray as $keyName => $keyValue) {
+			if ($keyName === "StorXInfo") {
 				continue;
 			}
 			
-			$keyNameEncoded = base64_encode($keyName);
+			if(!$this->checkKeyName($keyName)){
+				// Invalid key name
+				if ($this->throwExceptions) {
+					throw new Exception("[StorX: modifyMultipleKeys()] Invalid key name \"$keyName\"." . PHP_EOL, 206);
+				} else {
+					return 0;
+				}
+			}
 			
-			$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
-			if($result->fetchArray(SQLITE3_NUM)[0] !== 0){
-				// key already exists
-				
-				$keyValue = base64_encode(serialize($keyValue));			
-				try {
-					$this->fileHandle->exec("UPDATE main SET keyValue='$keyValue' WHERE keyName='$keyNameEncoded'");
+			try {
+				// Prepare and execute the statement to check key existence
+				$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
+				$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+				$result = $stmt->execute();
+
+				if ($result->fetchArray(SQLITE3_NUM)[0] !== 0) {
+					// Key exists, update it
+					$keyValueSerialized = serialize($keyValue);
+					$stmt = $this->fileHandle->prepare("UPDATE main SET keyValue = :keyValue WHERE keyName = :keyName");
+					$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+					$stmt->bindValue(':keyValue', $keyValueSerialized, SQLITE3_TEXT);
+					$stmt->execute();
+				} else {
+					// Key does not exist, insert it
+					$keyValueSerialized = serialize($keyValue);
+					$stmt = $this->fileHandle->prepare("INSERT INTO main (keyName, keyValue) VALUES (:keyName, :keyValue)");
+					$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+					$stmt->bindValue(':keyValue', $keyValueSerialized, SQLITE3_TEXT);
+					$stmt->execute();
 				}
-				catch (Exception $e) {
-					if($this->throwExceptions){
-						throw new Exception("[StorX: modifyMultipleKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
-					} else {
-						return 0; 
-					}
-				}
-			} else {
-				// key doesn't exist
-				$keyValue = base64_encode(serialize($keyValue));
-				try {
-					$this->fileHandle->exec("INSERT INTO main VALUES ('$keyNameEncoded', '$keyValue')");
-				}
-				catch (Exception $e) {
-					if($this->throwExceptions){
-						throw new Exception("[StorX: modifyMultipleKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);				
-					} else {
-						return 0; 
-					}
+			} catch (Exception $e) {
+				if ($this->throwExceptions) {
+					throw new Exception("[StorX: modifyMultipleKeys()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
+				} else {
+					return 0;
 				}
 			}
 		}
+
 		return 1;
 	}
 	
 	public function checkKey($keyName){
-		if($keyName === "StorXInfo"){
-			if($this->throwExceptions){
-				throw new Exception("[StorX: checkKey()] Don't be naughty!" . PHP_EOL, 666);				
+
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: checkKey()] No file open." . PHP_EOL, 102);
 			} else {
-				return 1; 
+				return 0;
 			}
 		}
 		
-		$keyNameEncoded = base64_encode($keyName);
-		
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: checkKey()] No file open." . PHP_EOL, 102);				
-			} else {
-				return 0; 
-			}
+		if ($keyName === "StorXInfo") {
+			return 1;
 		}
-		$result = $this->fileHandle->query("SELECT COUNT(*) FROM main WHERE keyName='$keyNameEncoded'");
-		if($result->fetchArray(SQLITE3_NUM)[0] === 0){
-			return 0;	// key not found!
-		}
-		return 1;
-	}
-	
-	public function deleteKey($keyName){
-		if($keyName === "StorXInfo"){
-			if($this->throwExceptions){
-				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL, 666);				
-			} else {
-				return 0; 
-			}
-		}
-		
-		$keyNameEncoded = base64_encode($keyName);
-		
-		if(!$this->fileStatus){
-			// no file open
-			if($this->throwExceptions){
-				throw new Exception("[StorX: deleteKey()] No file open." . PHP_EOL, 102);				
-			} else {
-				return 0; 
-			}
-		}
-		
-		if(!$this->lockStatus){
-			// file not locked
-			if($this->throwExceptions){
-				throw new Exception("[StorX: deleteKey()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);				
-			} else {
-				return 0; 
-			}
-		}
-		
+
 		try {
-			$this->fileHandle->exec("DELETE FROM main WHERE keyName='$keyNameEncoded'");
+			$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$result = $stmt->execute();
+
+			return $result->fetchArray(SQLITE3_NUM)[0] === 0 ? 0 : 1;
+		} catch (Exception $e) {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: checkKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
+			} else {
+				return 0;
+			}
 		}
-		catch (Exception $e) { 
-			// unable to delete key
-			if($this->throwExceptions){
+	}
+
+	public function deleteKey($keyName){
+		if ($keyName === "StorXInfo") {
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: deleteKey()] Don't be naughty!" . PHP_EOL, 666);
+			} else {
+				return 0;
+			}
+		}
+
+		if (!$this->fileStatus) {
+			// No file open
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: deleteKey()] No file open." . PHP_EOL, 102);
+			} else {
+				return 0;
+			}
+		}
+
+		if (!$this->lockStatus) {
+			// File not locked
+			if ($this->throwExceptions) {
+				throw new Exception("[StorX: deleteKey()] File [$this->DBfile] not locked for writing." . PHP_EOL, 103);
+			} else {
+				return 0;
+			}
+		}
+
+		try {
+			$stmt = $this->fileHandle->prepare("DELETE FROM main WHERE keyName = :keyName");
+			$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
+			$stmt->execute();
+		} catch (Exception $e) {
+			if ($this->throwExceptions) {
 				throw new Exception("[StorX: deleteKey()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 			} else {
-				return 0; 
+				return 0;
 			}
 		}
-		return 1; // key deleted!
+
+		return 1; // Key deleted!
 	}
+
+	// INTERNAL OPERATIONS
 	
+	// Function to check whether a key name is valid
+	private function checkKeyName($keyName){
+		$pattern = '/^[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*$/';
+		return (preg_match($pattern, $keyName) === 1);
+	}
 }
