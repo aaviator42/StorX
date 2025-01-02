@@ -193,7 +193,7 @@ if($sx->checkFile('testDB.dat') === 1){
 returned value | e | meaning
 ---------------|---|-------
 `0`            |   | the file doesn't exist 
-`1`            |   | a StorX file of the correct version (3.1) exists
+`1`            |   | a StorX file of the correct version (5.0) exists
 `2`            |   | a StorX DB file exists, but of a different version
 `3`            |   | an SQLite3 file exists but it's not a StorX DB
 `4`            |   | an SQLite3 file exists but it's locked
@@ -506,7 +506,7 @@ Keys are [serialized](https://www.php.net/manual/en/function.serialize.php) and 
 
 Because these are just regular SQLite3 DB files, you can access them using any software or library that supports the format.
 
-As of StorX DB file version 3.1, the DB file contains a single table, `main`:
+As of StorX DB file version 5.0, the DB file contains a single table, `main`:
 
 ```
 +------------------------+
