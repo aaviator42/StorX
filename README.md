@@ -467,6 +467,7 @@ returned value | e | meaning
 `0`            |*  | file not locked (not opened for writing)
 `0`            |*  | unable to delete key
 `1`            |   | key deleted successfully
+`1`            |   | key doesn't exist in DB file
 
 ## Exception Codes
 
