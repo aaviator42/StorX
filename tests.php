@@ -2,7 +2,7 @@
 /*
 StorX Test File
 v5.0, 2024-12-27
-AGPLv4, @aaviator42
+AGPLv3, @aaviator42
 */
 
 header('Content-Type: text/plain');
