@@ -411,43 +411,20 @@ class Sx{
 	
 	
 	// KEY OPERATIONS
-	public function readKey($keyName, &$store){
-		if ($keyName === "StorXInfo") {
-			$store = "5.0";
-			return 1;
-		}
-
-		if (!$this->fileStatus) {
-			// No file open
-			if ($this->throwExceptions) {
-				throw new Exception("[StorX: readKey()] No file open." . PHP_EOL, 102);
-			} else {
-				return 0;
-			}
-		}
-
-		// Prepare and execute the statement to check key existence
-		$stmt = $this->fileHandle->prepare("SELECT COUNT(*) FROM main WHERE keyName = :keyName");
-		$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
-		$result = $stmt->execute();
-
-		if ($result->fetchArray(SQLITE3_NUM)[0] === 0) {
-			if ($this->throwExceptions) {
-				throw new Exception("[StorX: readKey()] Key [$keyName] doesn't exist in file [$this->DBfile]." . PHP_EOL, 201);
-			} else {
-				return 0; // Key not found
-			}
-		}
-
-		// Prepare and execute the statement to retrieve the key value
-		$stmt = $this->fileHandle->prepare("SELECT keyValue FROM main WHERE keyName = :keyName");
-		$stmt->bindValue(':keyName', $keyName, SQLITE3_TEXT);
-		$result = $stmt->execute();
-
-		$keyValue = $result->fetchArray(SQLITE3_NUM)[0];
-		$store = unserialize($keyValue); // Storing value in $store
-
-		return 1;
+	public function readKey($keyName, &$store) {
+	    try {
+	        $value = $this->returnKey($keyName); // Call returnKey
+	        if ($value === "STORX_ERROR" && !$this->throwExceptions) {
+	            return 0; // Failure case when exceptions are off
+	        }
+	        $store = $value; // Assign to reference parameter
+	        return 1; // Success
+	    } catch (Exception $e) {
+	        if ($this->throwExceptions) {
+	            throw $e; // Propagate exception if enabled
+	        }
+	        return 0; // Failure case when exceptions are off
+	    }
 	}
 	
 	public function readAllKeys(&$store){
