@@ -1,0 +1,179 @@
+Beginning StorX Enhanced Tests...
+Enhanced test file v5.1, 2025-08-07
+Total planned tests: Comprehensive suite with original + enhanced tests
+
+Testing configurations:
+ THROW_EXCEPTIONS (default): false
+ THROW_EXCEPTIONS (test): true
+ BUSY_TIMEOUT: 1500 ms
+
+=== SECTION 1: ORIGINAL CORE FUNCTIONALITY TESTS ===
+
+Test 1:    Creating DB file testdb.db
+Function:   createFile('testdb.db')
+Expecting:  1
+Result:     1 (OK)
+
+Test 2:    Creating DB file testdb.db again
+Function:   createFile('testdb.db')
+Expecting:  0
+Result:     0 (OK)
+
+Test 3:    Check DB file testdb.db
+Function:   checkFile('testdb.db')
+Expecting:  1
+Result:     1 (OK)
+
+Test 4:    Check non-existent DB file testdb2.db
+Function:   checkFile('testdb2.db')
+Expecting:  0
+Result:     0 (OK)
+
+Test 5:    Check invalid DB file testdb2.db
+Function:   checkFile('testdb2.db')
+Expecting:  5
+Result:     5 (OK)
+
+Test 6:    Delete DB file testdb.db
+Function:   deleteFile('testdb.db')
+Expecting:  1
+Result:     1 (OK)
+
+Test 7:    Delete non-existent DB file testdb.db
+Function:   deleteFile('testdb.db')
+Expecting:  1
+Result:     1 (OK)
+
+Test 8:    Open non-existent DB file testdb.db
+Function:   openFile('testdb.db')
+Expecting:  0
+Result:     0 (OK)
+
+Test 9:    Write and read key to/from DB file
+Function:   writeKey(), returnKey()
+Expecting:  successful read/write
+Result:     Test data successfully written to and read from file (OK)
+Data written: 'test_000'
+Data read:    'test_000'
+
+Test 10:    Delete key from DB file
+Function:   deleteKey(), returnKey()
+Expecting:  key deletion
+Result:     Key successfully deleted from file (OK)
+
+Test 11:    Delete non-existent key from DB file
+Function:   deleteKey()
+Expecting:  1
+Result:     1 (OK)
+
+Test 12:    Delete key without write access
+Function:   deleteKey()
+Expecting:  0
+Result:     0 (OK)
+
+Test 13:    Check existing key in DB file
+Function:   checkKey()
+Expecting:  1
+Result:     1 (OK)
+
+Test 14:    Check non-existent key in DB file
+Function:   checkKey()
+Expecting:  0
+Result:     0 (OK)
+
+Test 15:    Modify key in DB file
+Function:   modifyKey()
+Expecting:  1
+Result:     1 (OK)
+
+Test 16:    Write key with invalid name
+Function:   writeKey()
+Expecting:  0
+Result:     0 (OK)
+
+Test 17:    Modify/read multiple keys
+Function:   modifyMultipleKeys(), readAllKeys()
+Expecting:  data integrity
+Result:     written_data === read_data (OK)
+
+=== SECTION 2: ENHANCED FUNCTIONALITY TESTS ===
+
+Test 18:    Exception handling mode
+Function:   throwExceptions(true)
+Expecting:  exceptions thrown
+Result:     Exception properly thrown (OK)
+
+Test 19:    Timeout configuration
+Function:   setTimeout()
+Expecting:  configurable timeout
+Result:     Timeout set to 3000 ms (OK)
+Original: 1500 ms, Set: 3000 ms, Current: 3000 ms
+
+Test 20:    Large data storage test
+Function:   writeKey(), returnKey() with 1MB data
+Expecting:  large data handling
+Result:     Large data stored and retrieved correctly (OK)
+Data size: 1048576 bytes
+
+Test 21:    File locking behavior
+Function:   Multiple file handles
+Expecting:  proper locking
+Result:     File locking works correctly (OK)
+
+Test 22:    Data type preservation
+Function:   Various data types
+Expecting:  type integrity
+Result:     All data types preserved correctly (OK)
+Tested: string, integer, float, boolean_true, boolean_false, null, array, assoc_array, nested_array, object (objects compared by value, not reference)
+
+Test 23:    Performance test - rapid operations
+Function:   1000 write/read cycles
+Expecting:  good performance
+Result:     Performance test completed successfully (OK)
+Duration: 345.12ms for 1000 operations (2897.54 ops/sec)
+
+Test 24:    Stress test - bulk key operations
+Function:   100 keys via modifyMultipleKeys()
+Expecting:  bulk operations
+Result:     Stress test completed successfully (OK)
+Duration: 4.03ms for 100 keys (24813.9 keys/sec)
+
+Test 25:    Edge case handling - empty values
+Function:   Various empty values
+Expecting:  empty value handling
+Result:     Empty values handled correctly (OK)
+
+Test 26:    File recovery after corruption
+Function:   checkFile() various states
+Expecting:  corruption detection
+Result:     File state detection works correctly (OK)
+✓ Non-existent: 0
+✓ Invalid format: 5
+✓ Valid StorX: 1
+
+Test 27:    Memory usage test
+Function:   Large dataset operations
+Expecting:  memory efficiency
+Result:     Memory usage is reasonable (OK)
+Memory increase: 0.77 MB, Keys processed: 500
+
+=== TEST SUMMARY ===
+Tests completed!
+Total tests run: 27
+Tests passed: 27
+Tests failed: 0
+Success rate: 100%
+Total duration: 10681.47ms
+
+FINAL RESULTS: ALL TESTS PASSED!!!
+StorX library is functioning correctly across all test scenarios.
+
+Enhanced test coverage includes:
+• All original functionality tests (1-17)
+• Exception handling and configuration tests
+• Large data and performance tests
+• Concurrent access and locking tests
+• Data type preservation and edge cases
+• Stress testing with bulk operations
+• File corruption detection and recovery
+• Memory efficiency validation

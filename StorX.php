@@ -3,10 +3,10 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 5.0
+StorX.php version: 5.1
 StorX DB file format version: 5.0
 
-2024-12-27
+2025-08-07
 License: AGPLv3
 
 */
@@ -225,12 +225,13 @@ class Sx{
 		} 
 		// table 'main' dropped
 		
+		// Close database connection BEFORE attempting to delete file
+		$tempDB->close();
+		
 		if(unlink($filename)){
-			$tempDB->close();
 			// deleted successfully
 			return 1;
 		} else {
-			$tempDB->close();
 			if($this->throwExceptions){
 				throw new Exception("[StorX: deleteFile()] Unable to delete file [$filename]." . PHP_EOL, 107);				
 			} else {
@@ -369,10 +370,10 @@ class Sx{
 			
 			$this->fileHandle->close();
 		}
-		unset($this->fileHandle);
-		unset($this->fileStatus);
-		unset($this->lockStatus);
-		unset($this->DBfile);
+		$this->fileHandle = null;
+		$this->fileStatus = 0;
+		$this->lockStatus = 0;
+		$this->DBfile = null;
 		return 1;
 	}
 	
