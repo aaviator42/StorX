@@ -18,6 +18,8 @@ It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on 
 
 It is an abstraction layer on top of SQLite3, and under the hood DB files are [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the [robustness](https://www.sqlite.org/testing.html) of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
 
+StorX is tested [extensively](https://github.com/aaviator42/StorX/blob/main/test_results.txt), and is used in production by dozens of sites serving hundreds of thousands of users.  
+
 <!--
  > You can also interface with StorX DB files stored on a different machine over the network/internet. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
 -->
