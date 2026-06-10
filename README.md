@@ -10,15 +10,15 @@ For historical purposes and legacy projects, `v4.1` of the library can be found 
 
 ## About 
 
-StorX is an easy and robust way to write data (objects) to flat files as "keys", which you can read and modify later.  
+StorX is an easy and robust way to write data (objects/values) to flat files as "keys", which you can read and modify later.  
 
 It was developed primarily to facilitate sharing of objects between independent PHP scripts and sessions, and can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
 
-It is basically `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects are stored as "keys" in "DB files". These files can be read from and written to concurrently with (almost) no risk of data corruption, which is impossible with regular PHP file handling.
+It is essentially `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects/values are stored as "keys" in "DB files". These files can be read from and written to concurrently with (almost) no risk of data corruption, which is impossible with regular PHP file handling.
 
-It is an abstraction layer on top of SQLite3, and under the hood DB files are [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the [robustness](https://www.sqlite.org/testing.html) of SQLite, but don't have to actually manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
+It is an abstraction layer on top of SQLite3, and under the hood DB files are [SQLite3 database files](https://www.sqlite.org/fileformat2.html), so you get the [robustness](https://www.sqlite.org/testing.html) of SQLite, but don't have to manually create DBs or formulate complicated queries just to be able to store and retrieve information. This also means that it's easy to export the data to other DBs.
 
-StorX is tested [extensively](https://github.com/aaviator42/StorX/blob/main/test_results.txt), and is used in production by dozens of sites serving hundreds of thousands of users.  
+StorX is tested [extensively](https://github.com/aaviator42/StorX/blob/main/test_results.txt), and has been in production for half a decade across dozens of sites, serving hundreds of thousands of users daily.
 
 <!--
  > You can also interface with StorX DB files stored on a different machine over the network/internet. Take a look at [StorX-API](https://github.com/aaviator42/StorX-API) and [StorX-Remote](https://github.com/aaviator42/StorX-Remote).
@@ -31,50 +31,48 @@ StorX is tested [extensively](https://github.com/aaviator42/StorX/blob/main/test
 The easiest way to understand what this library does is to see it in action:
 
 ```php
-
-//StorX example
-
 <?php
+// StorX example
 
-//include the StorX library
+// include the StorX library
 require 'StorX.php';	
 
-//create Sx 'handle' object to work with the DB file
+// create Sx 'handle' object to work with the DB file
 $sx = new \StorX\Sx;
 
-//create a DB file
+// create a DB file
 $sx->createFile('testDB.dat');
 
-//open the file for writing
+// open the file for writing
 $sx->openFile('testDB.dat', 1);
 
-//write stuff to the DB file
-$sx->writeKey('username', 'Aavi'); //username is now 'Aavi'
+// write stuff to the DB file as a key, mapped to a value
+$sx->writeKey('username', 'Jojo'); // username is now 'Jojo'
 
-//we can modify keys too!
-$sx->modifyKey('username', 'Amit'); //username is now 'Amit'
+// we can modify the values of keys too!
+$sx->modifyKey('username', 'Lila'); // username is now 'Lila'
 
-//here's how we read a key
+// here's how we read a key
 $sx->readKey('username', $username); 
-//the value of key 'username' ('Amit') has now been stored in $username
-//now we can do whatever we want with it
-echo "User: $username"; //prints 'User: Amit'
+// the value of key 'username' ('Lila') has now been stored in $username
+// now we can do whatever we want with it
+echo "User: $username"; // prints 'User: Lila'
 echo "<br>";
 
-//there's also a function to directly return the value of a key:
-echo "User: " . $sx->returnKey('username'); //prints 'User: Amit'
+// there's also a function to directly return the value of a key:
+echo "User: " . $sx->returnKey('username'); // prints 'User: Lila'
 echo "<br>";
 
-//here's how we check if a key exists in the DB file
+// here's how we check if a key exists in the DB file
 if($sx->checkKey('username')){
   echo "'username' key exists in DB file!";
   echo "<br>";
 }
 
-//deleting a key
+// deleting a key
 $sx->deleteKey('password');
 
-//commit changes to DB file and close it
+// commit changes to DB file and close it
 $sx->closeFile();
 
 ```
@@ -122,7 +120,7 @@ The default value for this can be changed by modifying the `THROW_EXCEPTIONS` co
 ```php
 $sx = new \StorX\Sx;
 
-$sx->throwExceptions(true); //enable exceptions
+$sx->throwExceptions(true); // enable exceptions
 
 ```
 
@@ -138,7 +136,7 @@ The default value for this can be changed by modifying the `BUSY_TIMEOUT` consta
 ```php
 $sx = new \StorX\Sx;
 
-$sx->setTimeout(2500); //set timeout of 2.5 seconds
+$sx->setTimeout(2500); // set timeout of 2.5 seconds
 
 ```
 
@@ -262,7 +260,10 @@ returned value | e | meaning
 Closes a StorX DB file. If file was opened for writing then changes are saved before it's closed.
 
 ```php
-if($sx->closeFile('testDB.dat', 1)){
+$sx->openFile('testDB.dat', 1); // open file for writing
+$sx->modifyKey('username', 'Jenny'); // do stuff
+
+if($sx->closeFile()){
   echo 'closed testDB.dat successfully';
 } else {
   echo 'error closing testDB.dat';
@@ -281,7 +282,10 @@ returned value | e | meaning
 Saves changes made to an open StorX DB file, but keeps it open.
 
 ```php
-if($sx->commitFile('testDB.dat', 1)){
+$sx->openFile('testDB.dat', 1); // open file for writing
+$sx->modifyKey('username', 'Jenny'); // do stuff
+
+if($sx->commitFile()){
   echo 'saved changes made to testDB.dat successfully';
 } else {
   echo 'error saving changes to testDB.dat';
@@ -301,11 +305,11 @@ Reads a key and saves the value in `store`.
 
 ```php
 
-$name = '';  //this statement is for readability, not strictly required
+$name = '';  // this statement is for readability, not strictly required
 $sx->readKey('username', $name);
-//value of 'username' key is now in $name
+// value of 'username' key is now in $name
 
-echo $name; //echo value of 'username' key
+echo $name; // echo value of 'username' key
 ```
 
 returned value | e | meaning
@@ -319,18 +323,19 @@ returned value | e | meaning
 ###  11. `\StorX\Sx::returnKey(<keyName>)`
 
 Reads a key and returns the value.  
-Use of this function is discouraged, because if exceptions are disabled and the key read fails, then detecting the failure is messy.
-Use `readKey()` instead whenever possible!
+Use of this function is discouraged, because if exceptions are disabled and the key read fails, then detecting the failure from the returned value is messy.  
+Use `readKey()` instead whenever possible, or ensure exceptions are enabled! See `throwExceptions()`.
 
 ```php
 
-echo $sx->returnKey('username'); //echo value of 'username' key
+echo $sx->returnKey('username'); // echo value of 'username' key
 ```
 
 returned value | e | meaning
 ---------------|---|-------
 "`STORX_ERROR`"  |*  | no file open
 "`STORX_ERROR`"  |*  | key not found in DB file
+&lt;anything else&gt; |   | the value/object corresponding to the provided keyName
 
 
 ###  12. `\StorX\Sx::readAllKeys(<store>)`
@@ -353,9 +358,9 @@ Usage:
 ```php
 
 $sx->readAllKeys($keyArray);
-//all keys are now in $keyArray
+// all keys are now in $keyArray
 
-echo $keyArray['username']; //echo value corresponding to key 'username' 
+echo $keyArray['username']; // echo value corresponding to key 'username' 
 ```
 
 returned value | e | meaning
@@ -373,12 +378,12 @@ Writes the key along with the given value to the open DB file. The value can be 
 
 ```php
 
-$sx->writeKey('username', 'aavi001'); 
+$sx->writeKey('username', 'jojo001'); 
 
-$array = array("foo", "bar", "hello", "world"); //array
+$array = array("foo", "bar", "hello", "world"); // array
 $sx->writeKey('words', $array);
 
-$rt = new RT(); //object of a class
+$rt = new RT(); // object of a class
 $sx->writeKey('RTobj', $rt);
 ```
 
@@ -401,7 +406,7 @@ Like with `writeKey()`, the value can be text, a variable, an array, NULL, or an
 
 ```php
 
-$sx->modifyKey('username', 'amit009'); 
+$sx->modifyKey('username', 'lila009'); 
 
 ```
 
@@ -561,4 +566,4 @@ Key names are stored in the column `keyName` as strings, and the corresponding d
 
 
 -----
-Documentation updated `2026-02-13`
+Documentation updated `2026-06-09`
