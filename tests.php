@@ -1,7 +1,7 @@
 <?php
 /*
 StorX Complete Test Suite
-v5.3, 2026-02-13
+v5.4, 2026-09-15
 AGPLv3, @aaviator42
 
 Complete test suite for StorX library covering:
@@ -104,9 +104,16 @@ foreach (glob('stress_*.db') as $file) {
 foreach (glob('test_exc_*.db') as $file) {
     unlink($file);
 }
+// WAL sidecar files left behind by read-only handles that closed last
+foreach (glob('*.db-wal') as $file) {
+    unlink($file);
+}
+foreach (glob('*.db-shm') as $file) {
+    unlink($file);
+}
 
 echo "Beginning StorX Tests..." . PHP_EOL;
-echo "Test file v5.3, 2026-02-24" . PHP_EOL;
+echo "Test file v5.4, 2026-09-15" . PHP_EOL;
 echo "Total planned tests: 58" . PHP_EOL;
 echo PHP_EOL;
 
@@ -1223,6 +1230,13 @@ if (file_exists('testdb.db')) {
 }
 if (file_exists('dest.db')) {
     unlink('dest.db');
+}
+// WAL sidecar files left behind by read-only handles that closed last
+foreach (glob('*.db-wal') as $file) {
+    if (file_exists($file)) unlink($file);
+}
+foreach (glob('*.db-shm') as $file) {
+    if (file_exists($file)) unlink($file);
 }
 
 $endTime = microtime(true);

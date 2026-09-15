@@ -3,10 +3,10 @@
 StorX - PHP flat-file storage
 by @aaviator42
 
-StorX.php version: 5.3
+StorX.php version: 5.4
 StorX DB file format version: 5.0
 
-2026-02-13
+2026-09-15
 License: AGPLv3
 
 */
@@ -63,6 +63,7 @@ class Sx{
 				$tempDB = new \SQLite3($filename, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE);
 				$tempDB->busyTimeout($this->busyTimeout);
 				$tempDB->enableExceptions(true);
+				$tempDB->querySingle("PRAGMA journal_mode=WAL;"); // must run outside a transaction
 				$tempDB->exec("BEGIN EXCLUSIVE;");
 			}
 			catch (Exception $e) { 
@@ -107,6 +108,8 @@ class Sx{
 				// unable to commit changes to new DB
 				$tempDB->close();
 				unlink($filename);
+				@unlink($filename . "-wal");
+				@unlink($filename . "-shm");
 				if($this->throwExceptions){
 					throw new Exception("[StorX: createFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 				} else {
@@ -247,7 +250,9 @@ class Sx{
 		$tempDB->close();
 		
 		if(unlink($filename)){
-			// deleted successfully
+			// deleted successfully; also remove WAL sidecar files if any were left behind
+			@unlink($filename . "-wal");
+			@unlink($filename . "-shm");
 			return 1;
 		} else {
 			if($this->throwExceptions){
@@ -345,6 +350,8 @@ class Sx{
 			$sourceDB->close();
 			$destDB->close();
 			unlink($destFile);
+			@unlink($destFile . "-wal");
+			@unlink($destFile . "-shm");
 			if($this->throwExceptions){
 				throw new Exception("[StorX: copyFile()] [SQLite]: " . $e->getMessage() . PHP_EOL, 300);
 			} else {
@@ -425,6 +432,9 @@ class Sx{
 			// If control reached here, then the DB was successfully opened for readwrite
 			// Because we're opening for readwrite, we now need to begin a transaction
 			try {
+				// Ensure the file uses WAL journaling (persistent per file; no-op if already WAL).
+				// Must run outside a transaction, so do it before BEGIN.
+				$this->fileHandle->querySingle("PRAGMA journal_mode=WAL;");
 				$this->fileHandle->exec("BEGIN IMMEDIATE;");
 			}
 			catch (Exception $e){

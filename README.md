@@ -1,7 +1,7 @@
 # StorX
 Simple (but robust!) PHP key-value flat-file data storage library
 
-Current library version: `5.3` | `2026-02-13`  
+Current library version: `5.4` | `2026-09-15`  
 Current DB file version: `5.0`
 
 License: `AGPLv3`
@@ -12,7 +12,7 @@ For historical purposes and legacy projects, `v4.1` of the library can be found 
 
 StorX is an easy and robust way to write data (objects/values) to flat files as "keys", which you can read and modify later.  
 
-It was developed primarily to facilitate sharing of objects between independent PHP scripts and sessions, and can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
+It was developed to facilitate sharing of objects between independent PHP scripts and sessions, and can be used in any context where you want to easily write/read data to/from files, but don't want to deal with the complexities of relational databases.
 
 It is essentially `serialize()` + file handling (`fopen(), fread(), fwrite()`) on steroids. Objects/values are stored as "keys" in "DB files". These files can be read from and written to concurrently with (almost) no risk of data corruption, which is impossible with regular PHP file handling.
 
@@ -88,6 +88,9 @@ $sx->closeFile();
  * While a file is open and locked for writing, other processes can still
   open it for reading. Readers will see the last committed version of the
   data. We use [`BEGIN IMMEDIATE`](https://www.sqlite.org/lang_transaction.html) under the hood for all write locks other than `deleteFile()`, which uses `BEGIN EXCLUSIVE`.
+ * DB files use SQLite's [WAL](https://www.sqlite.org/wal.html) journal mode. `createFile()` sets it on new files, and `openFile()` in write mode switches older non-WAL StorX DB files over the first time they're opened for writing. Readers are never blocked by a writer (not even during `commitFile()`), and writers are never blocked by readers. 
+ * SQLite keeps two sidecar files next to the DB file (`<file>-wal` and `<file>-shm`) while it's in use. They're normally removed when the last connection closes, but a read-only connection can't do that, so they may linger. They're harmless, and `deleteFile()` removes them. Don't delete the DB file while leaving them behind, and don't copy the DB file without them (use `copyFile()`).
+ * All processes accessing a DB file must be on the same machine. WAL doesn't work over network filesystems (NFS, SMB, etc.).
  * `StorXInfo` is the only reserved key name. Don't use it!
  * A comprehensive test suite can be found in `tests.php`.
  * Functions and scripts to backup StorX DB files can be found [here](https://github.com/aaviator42/StorX-Backup).
@@ -543,7 +546,7 @@ Code |  Meaning
 ## Keys and DB files
 Keys are [serialized](https://www.php.net/manual/en/function.serialize.php) and then stored in an [SQLite3 database file](https://www.sqlite.org/fileformat2.html).
 
-Because these are just regular SQLite3 DB files, you can access them using any software or library that supports the format.
+Because StorX DB files are just regular SQLite3 DB files, you can access them using any software or library that supports the format.
 
 As of StorX DB file version 5.0, the DB file contains a single table, `main`:
 
@@ -566,4 +569,4 @@ Key names are stored in the column `keyName` as strings, and the corresponding d
 
 
 -----
-Documentation updated `2026-06-09`
+Documentation updated `2026-09-15`

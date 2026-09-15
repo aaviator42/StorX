@@ -1,5 +1,5 @@
 Beginning StorX Tests...
-Test file v5.3, 2026-02-24
+Test file v5.4, 2026-09-15
 Total planned tests: 58
 
 Configuration:
@@ -179,13 +179,13 @@ Test 31:    Rapid operations
 Function:   1000 write/read cycles
 Expecting:  good performance
 Result:     Performance test completed successfully (OK)
-Duration: 431.74ms for 1000 operations (2316.21 ops/sec)
+Duration: 145.01ms for 1000 operations (6896.08 ops/sec)
 
 Test 32:    Bulk key operations
 Function:   100 keys via modifyMultipleKeys()
 Expecting:  bulk operations
 Result:     Stress test completed successfully (OK)
-Duration: 3.56ms for 100 keys (28089.89 keys/sec)
+Duration: 2.16ms for 100 keys (46296.3 keys/sec)
 
 Test 33:    File state detection
 Function:   checkFile() various states
@@ -317,7 +317,7 @@ Total tests run: 58
 Tests passed: 58
 Tests failed: 0
 Success rate: 100%
-Total duration: 4630.94ms
+Total duration: 5368.09ms
 
 FINAL RESULTS: ALL TESTS PASSED!
 StorX library is functioning correctly across all test scenarios.
